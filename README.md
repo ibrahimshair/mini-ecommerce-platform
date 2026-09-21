@@ -298,3 +298,4 @@ Bu yapı geliştirme sürecinde ihtiyaçlara göre güncellenecektir.
 ## Hedef
 
 Projenin sonunda temel e-ticaret işlemlerini gerçekleştirebilen, frontend, backend ve veritabanı katmanları birbirine bağlı çalışan bir web uygulaması oluşturulması hedeflenmektedir.
+Development branch setup
