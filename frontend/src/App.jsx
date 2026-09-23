@@ -1,14 +1,15 @@
 import Navbar from "./components/Navbar";
+import HomePage from "./pages/HomePage";
+import Footer from "./components/Footer";
 
 function App() {
   return (
-    <div>
+    <div className="app-container">
       <Navbar />
-
-      <main>
-        <h1>Mini E-Commerce Platform</h1>
-        <p>Welcome to our online store.</p>
+      <main className="main-content">
+        <HomePage />
       </main>
+      <Footer />
     </div>
   );
 }
