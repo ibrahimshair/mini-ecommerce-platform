@@ -295,7 +295,49 @@ Bu yapı geliştirme sürecinde ihtiyaçlara göre güncellenecektir.
 
 ---
 
+## Kurulum ve Yerel Ortamda Çalıştırma
+
+Projeyi yerel bilgisayarınızda çalıştırmak için aşağıdaki adımları izleyebilirsiniz:
+
+### 1. Repository'i Klonlayın
+```bash
+git clone https://github.com/ibrahimshair/mini-ecommerce-platform.git
+cd mini-ecommerce-platform
+```
+
+### 2. Backend Kurulumu ve Başlatma
+```bash
+cd backend
+npm install
+cp .env.example .env
+npm run dev
+```
+Backend API varsayılan olarak `http://localhost:5000` portunda çalışacaktır.
+- Durum kontrolü: `http://localhost:5000/api/health`
+
+### 3. Frontend Kurulumu ve Başlatma
+Ayrı bir terminal penceresinde:
+```bash
+cd frontend
+npm install
+npm run dev
+```
+Frontend uygulaması varsayılan olarak `http://localhost:5173` adresinde çalışacaktır.
+
+---
+
+## Staj İlerleme Durumu (35 Gün)
+
+- [x] **Gün 1 (21 Eylül):** Proje mimarisi, Git iskeleti, kurallar ve dokümantasyon hazırlandı.
+- [x] **Gün 2 (22 Eylül):** Express.js backend altyapısı, CORS, dotenv konfigürasyonu, modüler yönlendirme ve merkezi hata yakalama middleware'i tamamlandı.
+- [x] **Gün 3 (23 Eylül):** React frontend tasarım sistemi, responsive Navbar, Footer, ProductCard bileşenleri ve vitrinli HomePage tamamlandı.
+- [ ] **Gün 4-7:** PostgreSQL veritabanı şemaları, migrationlar ve Backend-DB bağlantısı.
+- [ ] **Gün 8-15:** Kimlik doğrulama, JWT ve kullanıcı profil sistemi.
+- [ ] **Gün 16-25:** Ürün kataloğu, arama/filtreleme ve sepet sistemi.
+- [ ] **Gün 26-35:** Sipariş yönetimi, admin paneli, testler ve teslimat.
+
+---
+
 ## Hedef
 
-Projenin sonunda temel e-ticaret işlemlerini gerçekleştirebilen, frontend, backend ve veritabanı katmanları birbirine bağlı çalışan bir web uygulaması oluşturulması hedeflenmektedir.
-Development branch setup
+Projenin sonunda temel e-ticaret işlemlerini gerçekleştirebilen, frontend, backend ve veritabanı katmanları birbirine bağlı çalışan modern bir web uygulaması ortaya çıkarılması hedeflenmektedir.
