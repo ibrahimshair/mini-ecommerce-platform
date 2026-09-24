@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const morgan = require("morgan");
 const config = require("./config");
 const apiRoutes = require("./routes");
 const { notFoundHandler, errorHandler } = require("./middleware/errorHandler");
@@ -13,6 +14,12 @@ app.use(
     credentials: true,
   })
 );
+
+// HTTP Request Logger
+if (config.nodeEnv !== "test") {
+  app.use(morgan("dev"));
+}
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
