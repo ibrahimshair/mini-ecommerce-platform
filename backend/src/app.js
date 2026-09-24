@@ -40,12 +40,4 @@ app.use("/api", apiRoutes);
 app.use(notFoundHandler);
 app.use(errorHandler);
 
-// Start server
-if (process.env.NODE_ENV !== "test") {
-  app.listen(config.port, () => {
-    console.log(`[Backend] Server is running on port ${config.port} (${config.nodeEnv})`);
-    console.log(`[Backend] API Health endpoint: http://localhost:${config.port}/api/health`);
-  });
-}
-
 module.exports = app;

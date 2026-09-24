@@ -1,4 +1,5 @@
 const express = require("express");
+const config = require("../config");
 const router = express.Router();
 
 router.get("/", (req, res) => {
@@ -11,7 +12,7 @@ router.get("/", (req, res) => {
     version: "1.0.0",
     timestamp: new Date().toISOString(),
     uptime: `${Math.floor(process.uptime())}s`,
-    environment: process.env.NODE_ENV || "development",
+    environment: config.nodeEnv,
     system: {
       nodeVersion: process.version,
       platform: process.platform,

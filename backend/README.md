@@ -25,8 +25,8 @@ backend/
 │   ├── middleware/         # Hata yönetimi, Auth, CORS ara yazılımları
 │   ├── models/             # Veritabanı modelleri ve şemalar
 │   ├── routes/             # API yönlendirme tanımları (/api/health, /api/auth...)
-│   ├── services/           # İş mantığı servisleri
-│   └── app.js              # Sunucu ana giriş noktası
+│   ├── app.js              # Express uygulaması ve middleware yapılandırması
+│   └── server.js           # HTTP sunucu başlatıcısı ve port dinleyicisi
 ├── .env.example            # Örnek çevre değişkenleri şablonu
 ├── package.json            # Paket ve script tanımları
 └── README.md
