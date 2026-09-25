@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const morgan = require("morgan");
 const config = require("./config");
 const apiRoutes = require("./routes");
 const { notFoundHandler, errorHandler } = require("./middleware/errorHandler");
@@ -13,6 +14,12 @@ app.use(
     credentials: true,
   })
 );
+
+// HTTP Request Logger
+if (config.nodeEnv !== "test") {
+  app.use(morgan("dev"));
+}
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -32,13 +39,5 @@ app.use("/api", apiRoutes);
 // Fallback 404 & Central Error Handling
 app.use(notFoundHandler);
 app.use(errorHandler);
-
-// Start server
-if (process.env.NODE_ENV !== "test") {
-  app.listen(config.port, () => {
-    console.log(`[Backend] Server is running on port ${config.port} (${config.nodeEnv})`);
-    console.log(`[Backend] API Health endpoint: http://localhost:${config.port}/api/health`);
-  });
-}
 
 module.exports = app;
