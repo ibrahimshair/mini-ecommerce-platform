@@ -326,15 +326,23 @@ Frontend uygulaması varsayılan olarak `http://localhost:5173` adresinde çalı
 
 ---
 
-## Staj İlerleme Durumu (35 Gün)
+## Staj İlerleme Durumu (35 Gün / 7 Hafta)
 
-- [x] **Gün 1 (21 Eylül):** Proje mimarisi, Git iskeleti, kurallar ve dokümantasyon hazırlandı.
-- [x] **Gün 2 (22 Eylül):** Express.js backend altyapısı, CORS, dotenv konfigürasyonu, modüler yönlendirme ve merkezi hata yakalama middleware'i tamamlandı.
-- [x] **Gün 3 (23 Eylül):** React frontend tasarım sistemi, responsive Navbar, Footer, ProductCard bileşenleri ve vitrinli HomePage tamamlandı.
-- [ ] **Gün 4-7:** PostgreSQL veritabanı şemaları, migrationlar ve Backend-DB bağlantısı.
-- [ ] **Gün 8-15:** Kimlik doğrulama, JWT ve kullanıcı profil sistemi.
-- [ ] **Gün 16-25:** Ürün kataloğu, arama/filtreleme ve sepet sistemi.
-- [ ] **Gün 26-35:** Sipariş yönetimi, admin paneli, testler ve teslimat.
+### ✅ 1. Hafta (Gün 1–5) — Milestone 1: Project Setup & Environment (%100 Tamamlandı)
+- [x] **Gün 1 (21 Eylül):** Proje gereksinimleri, Git repository ve dizin iskeleti oluşturuldu (#25).
+- [x] **Gün 2 (22 Eylül):** GitHub Projects Kanban panosu, 35 günlük takvim ve Git kuralları kurgulandı (#26).
+- [x] **Gün 3 (23 Eylül):** React 19 frontend geliştirme ortamı, CSS tasarım sistemi ve ana sayfa hazırlandı (#27).
+- [x] **Gün 4 (24 Eylül):** Express.js backend altyapısı, CORS, dotenv, morgan ve sağlık kontrolü kuruldu (#29).
+- [x] **Gün 5 (25 Eylül):** Çok katmanlı mimari, controller/service/client yapısı ve dokümantasyon tamamlandı (#30).
+
+### ⏳ Gelecek Haftaların Yol Haritası
+- [ ] **2. Hafta (Gün 6–10) — Milestone 2:** Frontend Temel Bileşenleri & Ürün Kataloğu (#31–#35)
+- [ ] **3. Hafta (Gün 11–15) — Milestone 3:** Kimlik Doğrulama & Kullanıcı Sistemi (#36–#40)
+- [ ] **4. Hafta (Gün 16–20) — Milestone 4:** Ürün Yönetimi & Alışveriş Sepeti (#41–#45)
+- [ ] **5. Hafta (Gün 21–25) — Milestone 5:** Sipariş Sistemi & Yönetici (Admin) Paneli (#46–#50)
+- [ ] **6. Hafta (Gün 26–30) — Milestone 6:** Frontend-Backend Entegrasyonu & Güvenlik (#51–#55)
+- [ ] **7. Hafta (Gün 31–35) — Milestone 7:** Test Süreçleri, Docker & Teslimat (#56–#60)
+
 
 ---
 
