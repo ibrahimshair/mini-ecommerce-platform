@@ -1,13 +1,15 @@
 const config = require("../config");
+const { testConnection } = require("../config/db");
 const { successResponse } = require("../utils/apiResponse");
 
 /**
  * Health Controller
- * Reports system status, memory usage, uptime, and runtime environment.
+ * Reports system status, memory usage, uptime, and database connection status.
  */
-const getHealth = (req, res, next) => {
+const getHealth = async (req, res, next) => {
   try {
     const memoryUsage = process.memoryUsage();
+    const dbStatus = await testConnection();
 
     const healthData = {
       service: "Mini E-Commerce Backend API",
@@ -16,6 +18,13 @@ const getHealth = (req, res, next) => {
       timestamp: new Date().toISOString(),
       uptime: `${Math.floor(process.uptime())}s`,
       environment: config.nodeEnv,
+      database: {
+        status: dbStatus.status,
+        connected: dbStatus.connected,
+        latency: dbStatus.latency,
+        database: dbStatus.database || config.db.name,
+        message: dbStatus.message,
+      },
       system: {
         nodeVersion: process.version,
         platform: process.platform,
@@ -28,7 +37,9 @@ const getHealth = (req, res, next) => {
 
     return successResponse(res, {
       statusCode: 200,
-      message: "System is healthy and operational",
+      message: dbStatus.connected
+        ? "System and database are healthy and operational"
+        : "System is operational (Database connection pending / fallback mode)",
       data: healthData,
     });
   } catch (error) {

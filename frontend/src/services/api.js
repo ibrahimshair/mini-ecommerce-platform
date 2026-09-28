@@ -87,7 +87,15 @@ class ApiService {
   }
 
   async getCategories() {
-    return this.get("/products/categories");
+    return this.get("/categories");
+  }
+
+  async getCategoryBySlug(slug) {
+    return this.get(`/categories/${slug}`);
+  }
+
+  async getCategoryProducts(slug) {
+    return this.get(`/categories/${slug}/products`);
   }
 }
 
