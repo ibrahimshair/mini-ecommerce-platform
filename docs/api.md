@@ -65,22 +65,28 @@ Tüm API yanıtları tekdüze bir şablon kullanır:
 
 ## 4. Mevcut Uç Noktalar (Milestone 1)
 
-### Sağlık Kontrolü (Health Check)
+### Sağlık ve Veritabanı Kontrolü (Health Check)
 - **Metod:** `GET`
 - **Uç Nokta:** `/api/health`
-- **Açıklama:** API servisinin ayakta olduğunu, bellek kullanımını ve çalışma süresini raporlar.
+- **Açıklama:** API servisinin ve PostgreSQL bağlantı havuzunun durumunu, ping gecikmesini ve sistem bellek kullanımını raporlar.
 - **Örnek Yanıt:**
 ```json
 {
   "success": true,
-  "message": "System is healthy and operational",
+  "message": "System and database are healthy and operational",
   "data": {
     "service": "Mini E-Commerce Backend API",
     "status": "UP",
     "version": "1.0.0",
-    "timestamp": "2026-09-25T07:25:11.226Z",
-    "uptime": "10s",
+    "timestamp": "2026-09-28T12:00:00.000Z",
+    "uptime": "42s",
     "environment": "development",
+    "database": {
+      "status": "UP",
+      "connected": true,
+      "latency": "4ms",
+      "database": "mini_ecommerce"
+    },
     "system": {
       "nodeVersion": "v24.18.0",
       "platform": "win32",
@@ -93,7 +99,53 @@ Tüm API yanıtları tekdüze bir şablon kullanır:
 }
 ```
 
-### Kök API Haritası
+---
+
+## 5. Ürün ve Katalog Uç Noktaları (Milestone 2)
+
+### Ürünleri Listele & Filtrele
 - **Metod:** `GET`
-- **Uç Nokta:** `/api`
-- **Açıklama:** API versiyonu ve gelecek modüllerin haritasını döndürür.
+- **Uç Nokta:** `/api/products`
+- **Sorgu Parametreleri:** `category`, `minPrice`, `maxPrice`, `search`, `inStock`, `sortBy`, `sortOrder`
+- **Açıklama:** Belirtilen filtrelere ve sıralama ölçütlerine göre ürün kataloğunu listeler.
+
+### Tekil Ürün Detayı
+- **Metod:** `GET`
+- **Uç Nokta:** `/api/products/:id`
+- **Açıklama:** ID veya slug parametresine göre tekil ürün detayını getirir.
+
+---
+
+## 6. Kategori Uç Noktaları (Milestone 2 / Day 7)
+
+### Tüm Kategorileri Listele
+- **Metod:** `GET`
+- **Uç Nokta:** `/api/categories`
+- **Açıklama:** Sistemdeki aktif kategorileri ürün adetleriyle (`productCount`) birlikte döner.
+
+### Kategori Detayı
+- **Metod:** `GET`
+- **Uç Nokta:** `/api/categories/:slug`
+- **Açıklama:** Verilen slug'a sahip kategoriyi döner.
+
+### Kategoriye Ait Ürünleri Listele
+- **Metod:** `GET`
+- **Uç Nokta:** `/api/categories/:slug/products`
+- **Açıklama:** Seçilen kategorinin tüm aktif ürünlerini döner.
+
+### Yeni Kategori Ekle
+- **Metod:** `POST`
+- **Uç Nokta:** `/api/categories`
+- **Gövde (Body):**
+```json
+{
+  "name": "Kitap & Kırtasiye",
+  "description": "Romanlar, ders kitapları ve ofis gereçleri",
+  "icon": "book"
+}
+```
+- **Yanıt:** `201 Created`
+
+### Kategori Güncelle & Sil
+- `PUT /api/categories/:id`
+- `DELETE /api/categories/:id` (Soft-delete)
