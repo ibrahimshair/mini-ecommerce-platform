@@ -2,6 +2,7 @@ const express = require("express");
 const healthRoutes = require("./health.routes");
 const productRoutes = require("./product.routes");
 const categoryRoutes = require("./category.routes");
+const authRoutes = require("./auth.routes");
 
 const router = express.Router();
 
@@ -14,6 +15,9 @@ router.use("/products", productRoutes);
 // Mount Category endpoints
 router.use("/categories", categoryRoutes);
 
+// Mount Authentication endpoints
+router.use("/auth", authRoutes);
+
 // API Root summary
 router.get("/", (req, res) => {
   res.json({
@@ -23,7 +27,7 @@ router.get("/", (req, res) => {
       health: "/api/health",
       products: "/api/products",
       categories: "/api/categories",
-      auth: "/api/auth (Upcoming in Milestone 3)",
+      auth: "/api/auth",
       cart: "/api/cart (Upcoming in Milestone 4)",
       orders: "/api/orders (Upcoming in Milestone 5)",
     },
