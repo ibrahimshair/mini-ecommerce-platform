@@ -97,6 +97,15 @@ class ApiService {
   async getCategoryProducts(slug) {
     return this.get(`/categories/${slug}/products`);
   }
+
+  // Authentication Endpoints
+  async register(userData) {
+    return this.post("/auth/register", userData);
+  }
+
+  async login(credentials) {
+    return this.post("/auth/login", credentials);
+  }
 }
 
 export const api = new ApiService(API_BASE_URL);
