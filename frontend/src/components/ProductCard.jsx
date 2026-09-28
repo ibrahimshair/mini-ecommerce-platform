@@ -1,7 +1,8 @@
 import "./ProductCard.css";
 
-function ProductCard({ product }) {
+function ProductCard({ product, onViewDetail, onAddToCart }) {
   const {
+    id,
     name,
     category,
     price,
@@ -10,18 +11,62 @@ function ProductCard({ product }) {
     reviewCount,
     image,
     discount,
+    stock = 15,
   } = product;
 
+  const handleCardClick = () => {
+    if (onViewDetail) {
+      onViewDetail(product);
+    }
+  };
+
+  const handleAddToCartClick = (e) => {
+    e.stopPropagation();
+    if (onAddToCart) {
+      onAddToCart(product, 1);
+    } else {
+      alert(`"${name}" sepete eklendi!`);
+    }
+  };
+
+  const isLowStock = stock > 0 && stock <= 5;
+  const isOutOfStock = stock <= 0;
+
   return (
-    <div className="product-card">
+    <div className="product-card" onClick={handleCardClick}>
       <div className="product-image-wrapper">
         {discount && <span className="product-discount-badge">%{discount}</span>}
+        {isLowStock && <span className="product-stock-pill low-stock">Son {stock} Ürün</span>}
+        {isOutOfStock && <span className="product-stock-pill out-of-stock">Tükendi</span>}
+
         <img src={image} alt={name} className="product-image" loading="lazy" />
+
+        <div className="product-image-overlay">
+          <button
+            type="button"
+            className="btn-quick-view"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onViewDetail) onViewDetail(product);
+            }}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+            Hızlı Bakış
+          </button>
+        </div>
+
         <button
           type="button"
           className="product-wishlist-btn"
           title="Favorilere Ekle"
           aria-label="Favorilere Ekle"
+          onClick={(e) => {
+            e.stopPropagation();
+            alert(`"${name}" favorilere eklendi.`);
+          }}
         >
           <svg
             viewBox="0 0 24 24"
@@ -71,6 +116,8 @@ function ProductCard({ product }) {
             className="btn-add-cart"
             title="Sepete Ekle"
             aria-label="Sepete Ekle"
+            disabled={isOutOfStock}
+            onClick={handleAddToCartClick}
           >
             <svg
               viewBox="0 0 24 24"
@@ -83,7 +130,7 @@ function ProductCard({ product }) {
               <path d="M5 12h14" />
               <path d="M12 5v14" />
             </svg>
-            <span>Ekle</span>
+            <span>{isOutOfStock ? "Tükendi" : "Ekle"}</span>
           </button>
         </div>
       </div>

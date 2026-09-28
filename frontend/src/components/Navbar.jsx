@@ -1,14 +1,26 @@
 import { useState } from "react";
 import "./Navbar.css";
 
-function Navbar() {
+function Navbar({ currentPage = "home", onNavigate, searchQuery = "", onSearchChange }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const handleNavClick = (page, category = "Tümü") => {
+    if (onNavigate) {
+      onNavigate(page, category);
+    }
+    setIsMobileMenuOpen(false);
+  };
 
   return (
     <header className="site-header">
       <div className="container header-container">
         {/* Brand Logo */}
-        <a href="/" className="brand-logo">
+        <button
+          type="button"
+          onClick={() => handleNavClick("home")}
+          className="brand-logo"
+          style={{ background: "none", border: "none", cursor: "pointer", textAlign: "left" }}
+        >
           <svg
             className="brand-icon"
             viewBox="0 0 24 24"
@@ -25,7 +37,7 @@ function Navbar() {
           <span className="brand-name">
             Mini<span>Store</span>
           </span>
-        </a>
+        </button>
 
         {/* Search Bar */}
         <div className="header-search">
@@ -45,29 +57,59 @@ function Navbar() {
             type="text"
             placeholder="Ürün, kategori veya marka ara..."
             className="search-input"
+            value={searchQuery}
+            onChange={(e) => {
+              if (onSearchChange) onSearchChange(e.target.value);
+            }}
+            onFocus={() => {
+              if (currentPage !== "products" && onNavigate) {
+                onNavigate("products");
+              }
+            }}
           />
         </div>
 
         {/* Desktop Navigation Links */}
         <nav className={`nav-menu ${isMobileMenuOpen ? "is-open" : ""}`}>
-          <a href="/" className="nav-link active">
+          <button
+            type="button"
+            className={`nav-link ${currentPage === "home" ? "active" : ""}`}
+            onClick={() => handleNavClick("home")}
+          >
             Ana Sayfa
-          </a>
-          <a href="#products" className="nav-link">
-            Ürünler
-          </a>
-          <a href="#categories" className="nav-link">
-            Kategoriler
-          </a>
-          <a href="#deals" className="nav-link">
-            Fırsatlar
-          </a>
+          </button>
+          <button
+            type="button"
+            className={`nav-link ${currentPage === "products" ? "active" : ""}`}
+            onClick={() => handleNavClick("products")}
+          >
+            Ürün Kataloğu
+          </button>
+          <button
+            type="button"
+            className="nav-link"
+            onClick={() => handleNavClick("products", "Elektronik")}
+          >
+            Elektronik
+          </button>
+          <button
+            type="button"
+            className="nav-link"
+            onClick={() => handleNavClick("products", "Giyim & Moda")}
+          >
+            Moda
+          </button>
         </nav>
 
         {/* Right Actions (Cart & Auth) */}
         <div className="header-actions">
           {/* Cart Icon with Badge */}
-          <a href="#cart" className="action-cart" title="Sepetim">
+          <button
+            type="button"
+            className="action-cart"
+            title="Sepetim"
+            onClick={() => alert("Sepet özelliği Milestone 4'te aktif olacaktır.")}
+          >
             <svg
               className="action-icon"
               viewBox="0 0 24 24"
@@ -82,16 +124,24 @@ function Navbar() {
               <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
             </svg>
             <span className="cart-badge">2</span>
-          </a>
+          </button>
 
           {/* User Auth Buttons */}
           <div className="auth-buttons">
-            <a href="#login" className="btn btn-outline btn-sm">
+            <button
+              type="button"
+              className="btn btn-outline btn-sm"
+              onClick={() => alert("Giriş yapma özelliği Milestone 3'te aktif olacaktır.")}
+            >
               Giriş Yap
-            </a>
-            <a href="#register" className="btn btn-primary btn-sm">
+            </button>
+            <button
+              type="button"
+              className="btn btn-primary btn-sm"
+              onClick={() => alert("Kayıt olma özelliği Milestone 3'te aktif olacaktır.")}
+            >
               Kayıt Ol
-            </a>
+            </button>
           </div>
 
           {/* Mobile Hamburger Toggle */}

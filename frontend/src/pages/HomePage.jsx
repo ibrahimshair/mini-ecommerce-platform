@@ -1,68 +1,89 @@
 import { useState } from "react";
 import ProductCard from "../components/ProductCard";
+import ProductDetailModal from "../components/ProductDetailModal";
 import "./HomePage.css";
 
 const FEATURED_PRODUCTS = [
   {
-    id: "prod-1",
-    name: "Kablosuz Gürültü Engelleyici Kulak Üstü Kulaklık",
+    id: "p1",
+    name: "Kablosuz Gürültü Engelleyici Kulak Üstü Kulaklık Pro",
+    slug: "kablosuz-anc-kulak-ustu-kulaklik-pro",
     category: "Elektronik",
-    price: 3499,
-    oldPrice: 4299,
-    discount: 18,
-    rating: 4.9,
-    reviewCount: 128,
+    price: 2499,
+    oldPrice: 3199,
+    discount: 22,
+    rating: 4.8,
+    reviewCount: 142,
+    stock: 24,
+    description: "Aktif gürültü engelleme (ANC), 40 saat pil ömrü, yüksek çözünürlüklü ses kalitesi ve ultra rahat hafızalı sünger yastıklar.",
     image:
       "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=600&q=80",
   },
   {
-    id: "prod-2",
-    name: "Akıllı Spor Saat - Nabız ve Uyku Takibi",
-    category: "Giyilebilir Teknoloji",
-    price: 2199,
-    oldPrice: 2799,
-    discount: 21,
-    rating: 4.8,
-    reviewCount: 94,
+    id: "p2",
+    name: "Akıllı Spor Saat - Nabız ve Uyku Takibi V2",
+    slug: "akilli-gps-spor-saati-v2",
+    category: "Elektronik",
+    price: 3899,
+    oldPrice: 4500,
+    discount: 13,
+    rating: 4.9,
+    reviewCount: 89,
+    stock: 15,
+    description: "AMOLED ekran, nabız ve kandaki oksijen ölçümü, dahili GPS, 50m su geçirmezlik ve 14 gün pil ömrü ile kusursuz antrenman takibi.",
     image:
       "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80",
   },
   {
-    id: "prod-3",
-    name: "Ergonomik Nefes Alan Koşu ve Antrenman Ayakkabısı",
-    category: "Spor & Outdoor",
-    price: 1899,
-    oldPrice: 2299,
-    discount: 17,
+    id: "p3",
+    name: "Minimalist Su Geçirmez Laptop Sırt Çantası",
+    slug: "minimalist-su-gecirmez-laptop-sirt-cantasi",
+    category: "Giyim & Moda",
+    price: 1299,
+    oldPrice: 1650,
+    discount: 21,
     rating: 4.7,
-    reviewCount: 65,
-    image:
-      "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    id: "prod-4",
-    name: "Su Geçirmez Çok Bölmeli Laptop Sırt Çantası",
-    category: "Aksesuar",
-    price: 849,
-    oldPrice: 1099,
-    discount: 22,
-    rating: 4.6,
-    reviewCount: 42,
+    reviewCount: 64,
+    stock: 40,
+    description: "16 inç korumalı laptop bölmesi, su itici kumaş dokusu, ergonomik omuz askıları ve gizli hırsızlık önleyici pasaport cebi.",
     image:
       "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=600&q=80",
   },
+  {
+    id: "p4",
+    name: "Mekanik RGB Kompakt Klavye (%75)",
+    slug: "mekanik-rgb-kompakt-klavye-75",
+    category: "Elektronik",
+    price: 1899,
+    oldPrice: 2299,
+    discount: 17,
+    rating: 4.6,
+    reviewCount: 110,
+    stock: 18,
+    description: "Hot-swappable mekanik kırmızı anahtarlar, PBT tuş kapakları, alüminyum gövde ve kablosuz Bluetooth/2.4Ghz çoklu cihaz desteği.",
+    image:
+      "https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=600&q=80",
+  },
 ];
 
-function HomePage() {
+function HomePage({ onNavigateToProducts }) {
   const [activeCategory, setActiveCategory] = useState("all");
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   const categories = [
     { id: "all", label: "Tüm Ürünler" },
     { id: "tech", label: "Elektronik" },
-    { id: "fashion", label: "Giyim" },
+    { id: "fashion", label: "Giyim & Moda" },
     { id: "sport", label: "Spor & Outdoor" },
     { id: "accessories", label: "Aksesuar" },
   ];
+
+  const handleCategoryClick = (cat) => {
+    setActiveCategory(cat.id);
+    if (onNavigateToProducts && cat.id !== "all") {
+      onNavigateToProducts(cat.label);
+    }
+  };
 
   return (
     <div className="home-page">
@@ -81,7 +102,11 @@ function HomePage() {
               binlerce kaliteli seçenek, hızlı teslimat ve özel fırsatlarla seni bekliyor.
             </p>
             <div className="hero-actions">
-              <a href="#products" className="btn btn-primary btn-lg">
+              <button
+                type="button"
+                className="btn btn-primary btn-lg"
+                onClick={() => onNavigateToProducts && onNavigateToProducts("Tümü")}
+              >
                 Alışverişe Başla
                 <svg
                   viewBox="0 0 24 24"
@@ -95,10 +120,14 @@ function HomePage() {
                   <path d="M5 12h14" />
                   <path d="m12 5 7 7-7 7" />
                 </svg>
-              </a>
-              <a href="#categories" className="btn btn-outline btn-lg">
-                Kategorileri İncele
-              </a>
+              </button>
+              <button
+                type="button"
+                className="btn btn-outline btn-lg"
+                onClick={() => onNavigateToProducts && onNavigateToProducts("Tümü")}
+              >
+                Kataloğu İncele
+              </button>
             </div>
 
             {/* Micro Stats */}
@@ -144,7 +173,7 @@ function HomePage() {
               </div>
               <div className="feature-info">
                 <h4>Hızlı & Ücretsiz Kargo</h4>
-                <p>Belirli tutar üzeri siparişlerde aynı gün kargo.</p>
+                <p>150 ₺ üzeri tüm siparişlerde aynı gün kargo avantajı.</p>
               </div>
             </div>
 
@@ -164,7 +193,7 @@ function HomePage() {
               </div>
               <div className="feature-info">
                 <h4>%100 Güvenli Ödeme</h4>
-                <p>256-bit SSL korumasıyla güvenli işlem.</p>
+                <p>256-bit SSL korumasıyla 3D Secure güvenli işlem.</p>
               </div>
             </div>
 
@@ -186,7 +215,7 @@ function HomePage() {
               </div>
               <div className="feature-info">
                 <h4>14 Gün Kolay İade</h4>
-                <p>Koşulsuz şartsız hızlı iade garantisi.</p>
+                <p>Koşulsuz şartsız hızlı iade ve değişim güvencesi.</p>
               </div>
             </div>
 
@@ -205,7 +234,7 @@ function HomePage() {
               </div>
               <div className="feature-info">
                 <h4>7/24 Müşteri Desteği</h4>
-                <p>Her sorunuz için uzman ekibimiz yanınızda.</p>
+                <p>Her sorunuz için uzman destek ekibimiz yanınızda.</p>
               </div>
             </div>
           </div>
@@ -228,7 +257,7 @@ function HomePage() {
                   key={cat.id}
                   type="button"
                   className={`pill-btn ${activeCategory === cat.id ? "active" : ""}`}
-                  onClick={() => setActiveCategory(cat.id)}
+                  onClick={() => handleCategoryClick(cat)}
                 >
                   {cat.label}
                 </button>
@@ -238,8 +267,22 @@ function HomePage() {
 
           <div className="products-grid">
             {FEATURED_PRODUCTS.map((prod) => (
-              <ProductCard key={prod.id} product={prod} />
+              <ProductCard
+                key={prod.id}
+                product={prod}
+                onViewDetail={(p) => setSelectedProduct(p)}
+              />
             ))}
+          </div>
+
+          <div style={{ textAlign: "center", marginTop: "2.5rem" }}>
+            <button
+              type="button"
+              className="btn btn-outline btn-lg"
+              onClick={() => onNavigateToProducts && onNavigateToProducts("Tümü")}
+            >
+              Tüm Ürünleri Gör ({categories.length} Kategori) &rarr;
+            </button>
           </div>
         </div>
       </section>
@@ -255,12 +298,24 @@ function HomePage() {
                 Kod: <strong>MINI15</strong> ile yapacağın ilk alışverişinde anında indirim kazan.
               </p>
             </div>
-            <a href="#products" className="btn btn-primary btn-lg">
+            <button
+              type="button"
+              className="btn btn-primary btn-lg"
+              onClick={() => onNavigateToProducts && onNavigateToProducts("Tümü")}
+            >
               Fırsatı Yakala
-            </a>
+            </button>
           </div>
         </div>
       </section>
+
+      {/* Quick View Modal */}
+      {selectedProduct && (
+        <ProductDetailModal
+          product={selectedProduct}
+          onClose={() => setSelectedProduct(null)}
+        />
+      )}
     </div>
   );
 }
