@@ -68,6 +68,27 @@ class ApiService {
   async checkHealth() {
     return this.get("/health");
   }
+
+  // Catalog & Product Endpoints
+  async getProducts(params = {}) {
+    const query = new URLSearchParams();
+    Object.entries(params).forEach(([key, val]) => {
+      if (val !== undefined && val !== null && val !== "") {
+        query.append(key, val);
+      }
+    });
+    const queryString = query.toString();
+    const endpoint = queryString ? `/products?${queryString}` : "/products";
+    return this.get(endpoint);
+  }
+
+  async getProductById(id) {
+    return this.get(`/products/${id}`);
+  }
+
+  async getCategories() {
+    return this.get("/products/categories");
+  }
 }
 
 export const api = new ApiService(API_BASE_URL);
