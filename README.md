@@ -335,9 +335,15 @@ Frontend uygulaması varsayılan olarak `http://localhost:5173` adresinde çalı
 - [x] **Gün 4 (24 Eylül):** Express.js backend altyapısı, CORS, dotenv, morgan ve sağlık kontrolü kuruldu (#29).
 - [x] **Gün 5 (25 Eylül):** Çok katmanlı mimari, controller/service/client yapısı ve dokümantasyon tamamlandı (#30).
 
+### 🚀 2. Hafta (Gün 6–10) — Milestone 2: Frontend Ürün Kataloğu & Veritabanı Modelleri (Devam Ediyor)
+- [x] **Gün 6 (28 Eylül):** Ürün Kataloğu sayfası (`ProductsPage`), filtreleme/sıralama, hızlı bakış modalı (`ProductDetailModal`) ve PostgreSQL veri şemaları/modelleri (`001_initial_schema.sql`, `002_seed_initial_data.sql`, `product.model.js`, `category.model.js`) tamamlandı (#31).
+- [ ] **Gün 7 (29 Eylül):** Backend-DB bağlantı havuzu entegrasyonu ve kategori API optimizasyonu (#32).
+- [ ] **Gün 8 (30 Eylül):** Kullanıcı kayıt (Register) API ve doğrulama katmanı (#33).
+- [ ] **Gün 9 (01 Ekim):** Kullanıcı giriş (Login) & JWT token üretimi (#34).
+- [ ] **Gün 10 (02 Ekim):** Auth middleware ve korumalı rota kontrolleri (#35).
+
 ### ⏳ Gelecek Haftaların Yol Haritası
-- [ ] **2. Hafta (Gün 6–10) — Milestone 2:** Frontend Temel Bileşenleri & Ürün Kataloğu (#31–#35)
-- [ ] **3. Hafta (Gün 11–15) — Milestone 3:** Kimlik Doğrulama & Kullanıcı Sistemi (#36–#40)
+- [ ] **3. Hafta (Gün 11–15) — Milestone 3:** Kimlik Doğrulama & Kullanıcı Profil Arayüzleri (#36–#40)
 - [ ] **4. Hafta (Gün 16–20) — Milestone 4:** Ürün Yönetimi & Alışveriş Sepeti (#41–#45)
 - [ ] **5. Hafta (Gün 21–25) — Milestone 5:** Sipariş Sistemi & Yönetici (Admin) Paneli (#46–#50)
 - [ ] **6. Hafta (Gün 26–30) — Milestone 6:** Frontend-Backend Entegrasyonu & Güvenlik (#51–#55)
