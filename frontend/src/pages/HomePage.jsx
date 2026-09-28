@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ProductCard from "../components/ProductCard";
 import ProductDetailModal from "../components/ProductDetailModal";
+import api from "../services/api";
 import "./HomePage.css";
 
 const FEATURED_PRODUCTS = [
@@ -66,22 +67,37 @@ const FEATURED_PRODUCTS = [
   },
 ];
 
+const DEFAULT_CATEGORIES = [
+  { id: "c1", name: "Elektronik", slug: "elektronik", icon: "cpu", productCount: 3, description: "Kulaklık, saat ve bilgisayar ekipmanları" },
+  { id: "c2", name: "Giyim & Moda", slug: "giyim-moda", icon: "shirt", productCount: 1, description: "Sırt çantaları ve stil ürünleri" },
+  { id: "c3", name: "Spor & Outdoor", slug: "spor-outdoor", icon: "activity", productCount: 1, description: "Termoslar ve antrenman ekipmanları" },
+  { id: "c4", name: "Ev & Yaşam", slug: "ev-yasam", icon: "home", productCount: 0, description: "Modern ev ve yaşam gereçleri" },
+  { id: "c5", name: "Aksesuar", slug: "aksesuar", icon: "watch", productCount: 1, description: "Güneş gözlükleri ve aksesuarlar" },
+];
+
 function HomePage({ onNavigateToProducts }) {
-  const [activeCategory, setActiveCategory] = useState("all");
+  const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
   const [selectedProduct, setSelectedProduct] = useState(null);
 
-  const categories = [
-    { id: "all", label: "Tüm Ürünler" },
-    { id: "tech", label: "Elektronik" },
-    { id: "fashion", label: "Giyim & Moda" },
-    { id: "sport", label: "Spor & Outdoor" },
-    { id: "accessories", label: "Aksesuar" },
-  ];
+  // Load live categories from backend API
+  useEffect(() => {
+    let isMounted = true;
+    api.getCategories()
+      .then((res) => {
+        if (isMounted && res?.data && res.data.length > 0) {
+          setCategories(res.data);
+        }
+      })
+      .catch((err) => console.warn("Failed to load categories:", err.message));
 
-  const handleCategoryClick = (cat) => {
-    setActiveCategory(cat.id);
-    if (onNavigateToProducts && cat.id !== "all") {
-      onNavigateToProducts(cat.label);
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const handleCategorySelect = (categoryName) => {
+    if (onNavigateToProducts) {
+      onNavigateToProducts(categoryName);
     }
   };
 
@@ -105,7 +121,7 @@ function HomePage({ onNavigateToProducts }) {
               <button
                 type="button"
                 className="btn btn-primary btn-lg"
-                onClick={() => onNavigateToProducts && onNavigateToProducts("Tümü")}
+                onClick={() => handleCategorySelect("Tümü")}
               >
                 Alışverişe Başla
                 <svg
@@ -124,7 +140,7 @@ function HomePage({ onNavigateToProducts }) {
               <button
                 type="button"
                 className="btn btn-outline btn-lg"
-                onClick={() => onNavigateToProducts && onNavigateToProducts("Tümü")}
+                onClick={() => handleCategorySelect("Tümü")}
               >
                 Kataloğu İncele
               </button>
@@ -157,16 +173,9 @@ function HomePage({ onNavigateToProducts }) {
           <div className="features-grid">
             <div className="feature-card">
               <div className="feature-icon-box">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <rect x="1" y="3" width="15" height="13" />
-                  <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
+                  <polygon points="16 8 20 8 23 11 23 16 16 16 8" />
                   <circle cx="5.5" cy="18.5" r="2.5" />
                   <circle cx="18.5" cy="18.5" r="2.5" />
                 </svg>
@@ -179,14 +188,7 @@ function HomePage({ onNavigateToProducts }) {
 
             <div className="feature-card">
               <div className="feature-icon-box">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
                   <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                 </svg>
@@ -199,14 +201,7 @@ function HomePage({ onNavigateToProducts }) {
 
             <div className="feature-card">
               <div className="feature-icon-box">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
                   <path d="M21 3v5h-5" />
                   <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
@@ -221,14 +216,7 @@ function HomePage({ onNavigateToProducts }) {
 
             <div className="feature-card">
               <div className="feature-icon-box">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
                 </svg>
               </div>
@@ -241,6 +229,53 @@ function HomePage({ onNavigateToProducts }) {
         </div>
       </section>
 
+      {/* Categories Showcase Section */}
+      <section className="categories-showcase-section">
+        <div className="container">
+          <div className="section-header">
+            <h2 className="section-title">Popüler Kategoriler</h2>
+            <p className="section-subtitle">
+              İhtiyacınıza en uygun ürünleri bulmak için kategorilere göz atın.
+            </p>
+          </div>
+
+          <div className="categories-grid">
+            {categories.map((cat) => (
+              <div
+                key={cat.id || cat.slug}
+                className="category-card"
+                onClick={() => handleCategorySelect(cat.name)}
+              >
+                <div className="category-card-top">
+                  <span className="category-icon-badge">
+                    {cat.icon === "cpu" && "⚡"}
+                    {cat.icon === "shirt" && "👕"}
+                    {cat.icon === "activity" && "🏃"}
+                    {cat.icon === "home" && "🏠"}
+                    {cat.icon === "watch" && "⌚"}
+                    {!["cpu", "shirt", "activity", "home", "watch"].includes(cat.icon) && "🏷️"}
+                  </span>
+                  {cat.productCount !== undefined && (
+                    <span className="category-product-count">
+                      {cat.productCount} Ürün
+                    </span>
+                  )}
+                </div>
+                <h3 className="category-card-title">{cat.name}</h3>
+                <p className="category-card-desc">{cat.description || "Koleksiyonu keşfedin"}</p>
+                <div className="category-card-link">
+                  <span>Ürünleri İncele</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M5 12h14" />
+                    <path d="m12 5 7 7-7 7" />
+                  </svg>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Featured Products */}
       <section id="products" className="products-section">
         <div className="container">
@@ -249,20 +284,6 @@ function HomePage({ onNavigateToProducts }) {
             <p className="section-subtitle">
               En çok tercih edilen, müşteri puanı en yüksek popüler modelleri keşfedin.
             </p>
-
-            {/* Category Pills */}
-            <div className="category-pills">
-              {categories.map((cat) => (
-                <button
-                  key={cat.id}
-                  type="button"
-                  className={`pill-btn ${activeCategory === cat.id ? "active" : ""}`}
-                  onClick={() => handleCategoryClick(cat)}
-                >
-                  {cat.label}
-                </button>
-              ))}
-            </div>
           </div>
 
           <div className="products-grid">
@@ -279,9 +300,9 @@ function HomePage({ onNavigateToProducts }) {
             <button
               type="button"
               className="btn btn-outline btn-lg"
-              onClick={() => onNavigateToProducts && onNavigateToProducts("Tümü")}
+              onClick={() => handleCategorySelect("Tümü")}
             >
-              Tüm Ürünleri Gör ({categories.length} Kategori) &rarr;
+              Tüm Ürün Kataloğunu Gör &rarr;
             </button>
           </div>
         </div>
@@ -301,7 +322,7 @@ function HomePage({ onNavigateToProducts }) {
             <button
               type="button"
               className="btn btn-primary btn-lg"
-              onClick={() => onNavigateToProducts && onNavigateToProducts("Tümü")}
+              onClick={() => handleCategorySelect("Tümü")}
             >
               Fırsatı Yakala
             </button>
