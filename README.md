@@ -338,7 +338,7 @@ Frontend uygulaması varsayılan olarak `http://localhost:5173` adresinde çalı
 ### 🚀 2. Hafta (Gün 6–10) — Milestone 2: Frontend Ürün Kataloğu & Veritabanı Modelleri (Devam Ediyor)
 - [x] **Gün 6 (28 Eylül):** Ürün Kataloğu sayfası (`ProductsPage`), filtreleme/sıralama, hızlı bakış modalı (`ProductDetailModal`) ve PostgreSQL veri şemaları/modelleri (`001_initial_schema.sql`, `002_seed_initial_data.sql`, `product.model.js`, `category.model.js`) tamamlandı (#31).
 - [x] **Gün 7 (29 Eylül):** Backend-DB bağlantı havuzu entegrasyonu, `/api/health` veritabanı durum raporlaması, Kategori REST API (`category.controller.js`, `category.routes.js`), DB entegrasyon doğrulama scripti (`npm run test:db`) ve ana sayfa kategori vitrini tamamlandı (#32).
-- [ ] **Gün 8 (30 Eylül):** Kullanıcı kayıt (Register) API ve doğrulama katmanı (#33).
+- [x] **Gün 8 (30 Eylül):** Kullanıcı kayıt (Register) API, bcryptjs şifre hashleme, mükerrer e-posta kontrolü, doğrulama middleware (`validateRegister`) ve interaktif `AuthModal` arayüzü tamamlandı (#33).
 - [ ] **Gün 9 (01 Ekim):** Kullanıcı giriş (Login) & JWT token üretimi (#34).
 - [ ] **Gün 10 (02 Ekim):** Auth middleware ve korumalı rota kontrolleri (#35).
 
