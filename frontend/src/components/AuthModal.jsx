@@ -97,10 +97,22 @@ function AuthModal({ isOpen, initialMode = "register", onClose, onAuthSuccess })
         }
         setTimeout(() => {
           onClose();
-        }, 1800);
+        }, 1500);
       } else {
-        // Login mode (Milestone 3 / Day 9 preparation)
-        setGeneralError("Giriş yapma ve JWT token üretimi 9. Gün görevinde aktifleşecektir. Kayıt Ol sekmesini deneyebilirsiniz.");
+        // Login mode
+        const res = await api.login({
+          email: formData.email,
+          password: formData.password,
+        });
+
+        const loggedInUser = res.data.user;
+        setSuccessMessage(`Hoş geldiniz, ${loggedInUser.name}! Giriş başarılı.`);
+        if (onAuthSuccess) {
+          onAuthSuccess(loggedInUser);
+        }
+        setTimeout(() => {
+          onClose();
+        }, 1200);
       }
     } catch (err) {
       setGeneralError(err.message || "Bir hata oluştu. Lütfen tekrar deneyiniz.");
@@ -266,6 +278,44 @@ function AuthModal({ isOpen, initialMode = "register", onClose, onAuthSuccess })
                 {errors.passwordConfirm && (
                   <span className="field-error">{errors.passwordConfirm}</span>
                 )}
+              </div>
+            )}
+
+            {mode === "login" && (
+              <div className="auth-demo-hint">
+                <span className="auth-demo-label">Hızlı Demo Girişi:</span>
+                <div className="auth-demo-chips">
+                  <button
+                    type="button"
+                    className="auth-chip"
+                    onClick={() => {
+                      setFormData((prev) => ({
+                        ...prev,
+                        email: "musteri@miniecom.com",
+                        password: "Password123!",
+                      }));
+                      setErrors({});
+                      setGeneralError("");
+                    }}
+                  >
+                    👤 Demo Müşteri
+                  </button>
+                  <button
+                    type="button"
+                    className="auth-chip"
+                    onClick={() => {
+                      setFormData((prev) => ({
+                        ...prev,
+                        email: "admin@miniecom.com",
+                        password: "Password123!",
+                      }));
+                      setErrors({});
+                      setGeneralError("");
+                    }}
+                  >
+                    🛡️ Admin
+                  </button>
+                </div>
               </div>
             )}
 
