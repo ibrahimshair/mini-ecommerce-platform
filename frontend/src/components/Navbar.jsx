@@ -1,7 +1,15 @@
 import { useState } from "react";
 import "./Navbar.css";
 
-function Navbar({ currentPage = "home", onNavigate, searchQuery = "", onSearchChange }) {
+function Navbar({
+  currentPage = "home",
+  onNavigate,
+  searchQuery = "",
+  onSearchChange,
+  currentUser,
+  onOpenAuth,
+  onLogout,
+}) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleNavClick = (page, category = "Tümü") => {
@@ -126,22 +134,40 @@ function Navbar({ currentPage = "home", onNavigate, searchQuery = "", onSearchCh
             <span className="cart-badge">2</span>
           </button>
 
-          {/* User Auth Buttons */}
+          {/* User Auth Buttons / User Profile */}
           <div className="auth-buttons">
-            <button
-              type="button"
-              className="btn btn-outline btn-sm"
-              onClick={() => alert("Giriş yapma özelliği Milestone 3'te aktif olacaktır.")}
-            >
-              Giriş Yap
-            </button>
-            <button
-              type="button"
-              className="btn btn-primary btn-sm"
-              onClick={() => alert("Kayıt olma özelliği Milestone 3'te aktif olacaktır.")}
-            >
-              Kayıt Ol
-            </button>
+            {currentUser ? (
+              <div className="user-profile-menu" style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                <span style={{ fontSize: "0.875rem", fontWeight: "600", color: "var(--text-primary)" }}>
+                  👋 {currentUser.name?.split(" ")[0]}
+                </span>
+                <button
+                  type="button"
+                  className="btn btn-outline btn-sm"
+                  onClick={onLogout}
+                  title="Çıkış Yap"
+                >
+                  Çıkış
+                </button>
+              </div>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  className="btn btn-outline btn-sm"
+                  onClick={() => onOpenAuth && onOpenAuth("login")}
+                >
+                  Giriş Yap
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-primary btn-sm"
+                  onClick={() => onOpenAuth && onOpenAuth("register")}
+                >
+                  Kayıt Ol
+                </button>
+              </>
+            )}
           </div>
 
           {/* Mobile Hamburger Toggle */}

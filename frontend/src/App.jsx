@@ -3,11 +3,17 @@ import Navbar from "./components/Navbar";
 import HomePage from "./pages/HomePage";
 import ProductsPage from "./pages/ProductsPage";
 import Footer from "./components/Footer";
+import AuthModal from "./components/AuthModal";
 
 function App() {
   const [currentPage, setCurrentPage] = useState("home");
   const [selectedCategory, setSelectedCategory] = useState("Tümü");
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Authentication modal state
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authMode, setAuthMode] = useState("register");
+  const [currentUser, setCurrentUser] = useState(null);
 
   const handleNavigate = (page, category = "Tümü") => {
     setCurrentPage(page);
@@ -24,6 +30,15 @@ function App() {
     }
   };
 
+  const handleOpenAuth = (mode = "register") => {
+    setAuthMode(mode);
+    setIsAuthModalOpen(true);
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+  };
+
   return (
     <div className="app-container">
       <Navbar
@@ -31,6 +46,9 @@ function App() {
         onNavigate={handleNavigate}
         searchQuery={searchQuery}
         onSearchChange={handleSearchChange}
+        currentUser={currentUser}
+        onOpenAuth={handleOpenAuth}
+        onLogout={handleLogout}
       />
       <main className="main-content">
         {currentPage === "home" ? (
@@ -48,6 +66,16 @@ function App() {
         )}
       </main>
       <Footer />
+
+      {/* Authentication Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        initialMode={authMode}
+        onClose={() => setIsAuthModalOpen(false)}
+        onAuthSuccess={(user) => {
+          setCurrentUser(user);
+        }}
+      />
     </div>
   );
 }

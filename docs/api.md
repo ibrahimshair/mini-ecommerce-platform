@@ -149,3 +149,38 @@ Tüm API yanıtları tekdüze bir şablon kullanır:
 ### Kategori Güncelle & Sil
 - `PUT /api/categories/:id`
 - `DELETE /api/categories/:id` (Soft-delete)
+
+---
+
+## 7. Kimlik Doğrulama Uç Noktaları (Milestone 3 / Day 8)
+
+### Kullanıcı Kaydı (Register)
+- **Metod:** `POST`
+- **Uç Nokta:** `/api/auth/register`
+- **Gövde (Body):**
+```json
+{
+  "name": "Ahmet Yılmaz",
+  "email": "ahmet@ornek.com",
+  "password": "GuvenliSifre123",
+  "phone": "05551234567"
+}
+```
+- **Başarılı Yanıt (`201 Created`):**
+```json
+{
+  "success": true,
+  "message": "Kullanıcı kaydı başarıyla oluşturuldu.",
+  "data": {
+    "id": "usr-1790598836605",
+    "name": "Ahmet Yılmaz",
+    "email": "ahmet@ornek.com",
+    "role": "user",
+    "phone": "05551234567",
+    "createdAt": "2026-09-28T12:35:00.000Z"
+  }
+}
+```
+- **Hata Durumları:**
+  - `400 Bad Request`: Form alanları eksik veya geçersiz (ad < 2 karakter, hatalı email, şifre < 6 karakter).
+  - `409 Conflict`: Belirtilen e-posta adresi ile kayıtlı bir hesap zaten var.
