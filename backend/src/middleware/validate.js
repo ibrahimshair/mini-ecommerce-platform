@@ -61,6 +61,47 @@ const validateRegister = (req, res, next) => {
   next();
 };
 
+/**
+ * Validation middleware for User Login
+ */
+const validateLogin = (req, res, next) => {
+  const { email, password } = req.body || {};
+  const errors = [];
+
+  // Email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!email || typeof email !== "string" || !emailRegex.test(email.trim())) {
+    errors.push({
+      field: "email",
+      message: "Lütfen geçerli bir e-posta adresi giriniz.",
+    });
+  }
+
+  // Password validation
+  if (!password || typeof password !== "string" || password.length === 0) {
+    errors.push({
+      field: "password",
+      message: "Lütfen şifrenizi giriniz.",
+    });
+  }
+
+  if (errors.length > 0) {
+    return errorResponse(res, {
+      statusCode: 400,
+      message: "Giriş bilgileri doğrulanamadı.",
+      errors,
+    });
+  }
+
+  // Sanitize inputs
+  req.body.email = email.trim().toLowerCase();
+  req.body.password = password;
+
+  next();
+};
+
 module.exports = {
   validateRegister,
+  validateLogin,
 };
+
