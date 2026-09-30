@@ -184,3 +184,37 @@ Tüm API yanıtları tekdüze bir şablon kullanır:
 - **Hata Durumları:**
   - `400 Bad Request`: Form alanları eksik veya geçersiz (ad < 2 karakter, hatalı email, şifre < 6 karakter).
   - `409 Conflict`: Belirtilen e-posta adresi ile kayıtlı bir hesap zaten var.
+
+### Kullanıcı Girişi & JWT Üretimi (Login - Day 9)
+- **Metod:** `POST`
+- **Uç Nokta:** `/api/auth/login`
+- **Gövde (Body):**
+```json
+{
+  "email": "ahmet@ornek.com",
+  "password": "GuvenliSifre123"
+}
+```
+- **Başarılı Yanıt (`200 OK`):**
+```json
+{
+  "success": true,
+  "message": "Giriş işlemi başarıyla gerçekleştirildi.",
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "user": {
+      "id": "u0000000-0000-0000-0000-000000000001",
+      "name": "Ahmet Yılmaz",
+      "email": "ahmet@ornek.com",
+      "role": "user",
+      "phone": "05551234567",
+      "avatarUrl": null
+    }
+  }
+}
+```
+- **Hata Durumları:**
+  - `400 Bad Request`: Form alanları eksik veya geçersiz format (boş e-posta veya şifre).
+  - `401 Unauthorized`: Geçersiz e-posta adresi veya yanlış şifre.
+  - `403 Forbidden`: Hesap askıya alınmış veya pasif durumda.
+

@@ -4,17 +4,73 @@
  */
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const TOKEN_KEY = "mini_ecommerce_token";
+const USER_KEY = "mini_ecommerce_user";
 
 class ApiService {
   constructor(baseUrl) {
     this.baseUrl = baseUrl;
   }
 
+  // Token & Session Storage Management
+  getToken() {
+    try {
+      return localStorage.getItem(TOKEN_KEY);
+    } catch {
+      return null;
+    }
+  }
+
+  setToken(token) {
+    try {
+      if (token) {
+        localStorage.setItem(TOKEN_KEY, token);
+      } else {
+        localStorage.removeItem(TOKEN_KEY);
+      }
+    } catch (e) {
+      console.warn("LocalStorage access failed:", e);
+    }
+  }
+
+  getCurrentUser() {
+    try {
+      const data = localStorage.getItem(USER_KEY);
+      return data ? JSON.parse(data) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  setCurrentUser(user) {
+    try {
+      if (user) {
+        localStorage.setItem(USER_KEY, JSON.stringify(user));
+      } else {
+        localStorage.removeItem(USER_KEY);
+      }
+    } catch (e) {
+      console.warn("LocalStorage access failed:", e);
+    }
+  }
+
+  logout() {
+    try {
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
+    } catch (e) {
+      console.warn("LocalStorage access failed:", e);
+    }
+  }
+
   async request(endpoint, options = {}) {
     const url = `${this.baseUrl}${endpoint}`;
+    const token = this.getToken();
+
     const defaultHeaders = {
       "Content-Type": "application/json",
       Accept: "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     };
 
     const config = {
@@ -104,7 +160,14 @@ class ApiService {
   }
 
   async login(credentials) {
-    return this.post("/auth/login", credentials);
+    const response = await this.post("/auth/login", credentials);
+    if (response?.data?.token) {
+      this.setToken(response.data.token);
+      if (response?.data?.user) {
+        this.setCurrentUser(response.data.user);
+      }
+    }
+    return response;
   }
 }
 

@@ -13,10 +13,10 @@ INSERT INTO categories (id, name, slug, description, icon, is_active) VALUES
 ON CONFLICT (id) DO NOTHING;
 
 -- 2. SEED DEMO USERS
--- (password hashes are sample bcrypt hashes for 'Password123!')
+-- (password hashes are valid bcrypt hashes for 'Password123!')
 INSERT INTO users (id, name, email, password_hash, role, phone, is_active) VALUES
-    ('u0000000-0000-0000-0000-000000000001', 'Admin Yönetici', 'admin@miniecom.com', '$2b$10$ep5YdF7hS2/2QjHw0e2Uq.d7aW4dDq9r4M7jX5sF2.f3Y.4yK4yOe', 'admin', '+905551112233', true),
-    ('u0000000-0000-0000-0000-000000000002', 'Demo Müşteri', 'musteri@miniecom.com', '$2b$10$ep5YdF7hS2/2QjHw0e2Uq.d7aW4dDq9r4M7jX5sF2.f3Y.4yK4yOe', 'user', '+905554445566', true)
+    ('u0000000-0000-0000-0000-000000000001', 'Admin Yönetici', 'admin@miniecom.com', '$2b$10$58THfDfcxvYS1NbvbEpqZ.djyNBT5x7QfV7tdcjUqTkPUC4JZCZt2', 'admin', '+905551112233', true),
+    ('u0000000-0000-0000-0000-000000000002', 'Demo Müşteri', 'musteri@miniecom.com', '$2b$10$58THfDfcxvYS1NbvbEpqZ.djyNBT5x7QfV7tdcjUqTkPUC4JZCZt2', 'user', '+905554445566', true)
 ON CONFLICT (id) DO NOTHING;
 
 -- 3. SEED PRODUCTS

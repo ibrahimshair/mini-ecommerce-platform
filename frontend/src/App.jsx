@@ -4,16 +4,17 @@ import HomePage from "./pages/HomePage";
 import ProductsPage from "./pages/ProductsPage";
 import Footer from "./components/Footer";
 import AuthModal from "./components/AuthModal";
+import api from "./services/api";
 
 function App() {
   const [currentPage, setCurrentPage] = useState("home");
   const [selectedCategory, setSelectedCategory] = useState("Tümü");
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Authentication modal state
+  // Authentication modal state with persistent user initialization
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState("register");
-  const [currentUser, setCurrentUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState(() => api.getCurrentUser());
 
   const handleNavigate = (page, category = "Tümü") => {
     setCurrentPage(page);
@@ -36,6 +37,7 @@ function App() {
   };
 
   const handleLogout = () => {
+    api.logout();
     setCurrentUser(null);
   };
 
