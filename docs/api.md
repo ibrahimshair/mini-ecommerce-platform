@@ -218,3 +218,35 @@ Tüm API yanıtları tekdüze bir şablon kullanır:
   - `401 Unauthorized`: Geçersiz e-posta adresi veya yanlış şifre.
   - `403 Forbidden`: Hesap askıya alınmış veya pasif durumda.
 
+### Mevcut Kullanıcı Profili (Get Current User / Profile - Day 10)
+- **Metod:** `GET`
+- **Uç Nokta:** `/api/auth/me`
+- **Yetkilendirme:** `Bearer <token>` (`authenticate` middleware)
+- **Başarılı Yanıt (`200 OK`):**
+```json
+{
+  "success": true,
+  "message": "Kullanıcı profili başarıyla getirildi.",
+  "data": {
+    "id": "u0000000-0000-0000-0000-000000000001",
+    "name": "Admin Yönetici",
+    "email": "admin@miniecom.com",
+    "role": "admin",
+    "phone": "+905551112233",
+    "avatarUrl": null,
+    "createdAt": "2026-09-29T12:00:00.000Z"
+  }
+}
+```
+- **Hata Durumları:**
+  - `401 Unauthorized`: Token eksik, geçersiz veya süresi dolmuş.
+
+---
+
+## 8. Güvenlik & Korumalı Rotalar (Day 10)
+
+Platformda iki temel güvenlik middleware'i kullanılmaktadır:
+1. **`authenticate`:** Gelen istekteki `Authorization: Bearer <token>` başlığını çözerek kullanıcının kimliğini ve oturum geçerliliğini doğrular.
+2. **`authorizeRoles(...roles)`:** Kullanıcının rolünü (`req.user.role`) denetler. Örneğin kategori oluşturma, güncelleme ve silme işlemleri (`POST`, `PUT`, `DELETE /api/categories`) yalnızca `admin` rolüne sahip kullanıcılara açıktır; yetkisiz erişimlerde `403 Forbidden` yanıtı döner.
+
+

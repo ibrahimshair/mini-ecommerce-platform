@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "./components/Navbar";
 import HomePage from "./pages/HomePage";
 import ProductsPage from "./pages/ProductsPage";
@@ -15,6 +15,25 @@ function App() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState("register");
   const [currentUser, setCurrentUser] = useState(() => api.getCurrentUser());
+
+  // Validate active session with backend /api/auth/me on mount
+  useEffect(() => {
+    const token = api.getToken();
+    if (token) {
+      api
+        .getMe()
+        .then((res) => {
+          if (res?.data) {
+            setCurrentUser(res.data);
+            api.setCurrentUser(res.data);
+          }
+        })
+        .catch(() => {
+          // Token expired or invalid: reset current user
+          setCurrentUser(null);
+        });
+    }
+  }, []);
 
   const handleNavigate = (page, category = "Tümü") => {
     setCurrentPage(page);

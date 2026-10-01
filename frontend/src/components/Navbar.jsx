@@ -138,8 +138,23 @@ function Navbar({
           <div className="auth-buttons">
             {currentUser ? (
               <div className="user-profile-menu" style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                <span style={{ fontSize: "0.875rem", fontWeight: "600", color: "var(--text-primary)" }}>
+                <span style={{ fontSize: "0.875rem", fontWeight: "600", color: "var(--text-primary)", display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
                   👋 {currentUser.name?.split(" ")[0]}
+                  {currentUser.role === "admin" && (
+                    <span
+                      style={{
+                        fontSize: "0.7rem",
+                        padding: "0.15rem 0.45rem",
+                        borderRadius: "9999px",
+                        background: "rgba(99, 102, 241, 0.12)",
+                        color: "#4f46e5",
+                        fontWeight: "700",
+                        border: "1px solid rgba(99, 102, 241, 0.3)",
+                      }}
+                    >
+                      Admin
+                    </span>
+                  )}
                 </span>
                 <button
                   type="button"

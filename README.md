@@ -340,7 +340,8 @@ Frontend uygulaması varsayılan olarak `http://localhost:5173` adresinde çalı
 - [x] **Gün 7 (29 Eylül):** Backend-DB bağlantı havuzu entegrasyonu, `/api/health` veritabanı durum raporlaması, Kategori REST API (`category.controller.js`, `category.routes.js`), DB entegrasyon doğrulama scripti (`npm run test:db`) ve ana sayfa kategori vitrini tamamlandı (#32).
 - [x] **Gün 8 (30 Eylül):** Kullanıcı kayıt (Register) API, bcryptjs şifre hashleme, mükerrer e-posta kontrolü, doğrulama middleware (`validateRegister`) ve interaktif `AuthModal` arayüzü tamamlandı (#33).
 - [x] **Gün 9 (01 Ekim):** Kullanıcı giriş (Login) & JWT token üretimi, şifre doğrulaması, oturum yönetimi ve AuthModal entegrasyonu tamamlandı (#34).
-- [ ] **Gün 10 (02 Ekim):** Auth middleware ve korumalı rota kontrolleri (#35).
+- [x] **Gün 10 (02 Ekim):** Auth middleware (`authenticate`), rol bazlı yetkilendirme (`authorizeRoles`), `/api/auth/me` profili ve korumalı rota kontrolleri tamamlandı (#35).
+
 
 ### ⏳ Gelecek Haftaların Yol Haritası
 - [ ] **3. Hafta (Gün 11–15) — Milestone 3:** Kimlik Doğrulama & Kullanıcı Profil Arayüzleri (#36–#40)
