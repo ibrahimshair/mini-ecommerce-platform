@@ -216,7 +216,54 @@ const AuthController = {
       next(error);
     }
   },
+
+  /**
+   * GET /api/auth/me
+   * Returns current authenticated user's profile details.
+   */
+  async getMe(req, res, next) {
+    try {
+      const userId = req.user?.id;
+
+      // 1. Try finding user in database
+      let user = null;
+      try {
+        user = await User.findById(userId);
+      } catch (dbErr) {
+        user = null;
+      }
+
+      // 2. If not found in DB or DB offline, check in-memory fallback
+      if (!user) {
+        user = FALLBACK_USERS.find((u) => u.id === userId);
+      }
+
+      // 3. Fallback to basic claims attached to req.user
+      if (!user) {
+        user = req.user;
+      }
+
+      const userProfile = {
+        id: user.id,
+        name: user.name || "Kullanıcı",
+        email: user.email,
+        role: user.role || "user",
+        phone: user.phone || null,
+        avatarUrl: user.avatar_url || user.avatarUrl || null,
+        createdAt: user.created_at || user.createdAt || null,
+      };
+
+      return successResponse(res, {
+        statusCode: 200,
+        message: "Kullanıcı profili başarıyla getirildi.",
+        data: userProfile,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
 };
 
 module.exports = AuthController;
+
 
