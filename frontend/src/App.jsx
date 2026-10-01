@@ -1,20 +1,38 @@
 import { useState, useEffect } from "react";
+import { Routes, Route, useSearchParams, useLocation } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import HomePage from "./pages/HomePage";
 import ProductsPage from "./pages/ProductsPage";
+import ProductDetailPage from "./pages/ProductDetailPage";
+import ProfilePage from "./pages/ProfilePage";
+import NotFoundPage from "./pages/NotFoundPage";
 import Footer from "./components/Footer";
 import AuthModal from "./components/AuthModal";
+import ProtectedRoute from "./components/ProtectedRoute";
 import api from "./services/api";
 
 function App() {
-  const [currentPage, setCurrentPage] = useState("home");
-  const [selectedCategory, setSelectedCategory] = useState("Tümü");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
 
   // Authentication modal state with persistent user initialization
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState("register");
   const [currentUser, setCurrentUser] = useState(() => api.getCurrentUser());
+
+  // Listen to URL query parameter (?auth=login or ?auth=register)
+  useEffect(() => {
+    const authParam = searchParams.get("auth");
+    if (authParam === "login" || authParam === "register") {
+      setAuthMode(authParam);
+      setIsAuthModalOpen(true);
+    }
+  }, [searchParams]);
+
+  // Scroll to top on route change
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [location.pathname]);
 
   // Validate active session with backend /api/auth/me on mount
   useEffect(() => {
@@ -35,24 +53,18 @@ function App() {
     }
   }, []);
 
-  const handleNavigate = (page, category = "Tümü") => {
-    setCurrentPage(page);
-    if (category) {
-      setSelectedCategory(category);
-    }
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const handleSearchChange = (query) => {
-    setSearchQuery(query);
-    if (currentPage !== "products") {
-      setCurrentPage("products");
-    }
-  };
-
   const handleOpenAuth = (mode = "register") => {
     setAuthMode(mode);
     setIsAuthModalOpen(true);
+  };
+
+  const handleCloseAuth = () => {
+    setIsAuthModalOpen(false);
+    if (searchParams.get("auth")) {
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete("auth");
+      setSearchParams(newParams, { replace: true });
+    }
   };
 
   const handleLogout = () => {
@@ -63,36 +75,35 @@ function App() {
   return (
     <div className="app-container">
       <Navbar
-        currentPage={currentPage}
-        onNavigate={handleNavigate}
-        searchQuery={searchQuery}
-        onSearchChange={handleSearchChange}
         currentUser={currentUser}
         onOpenAuth={handleOpenAuth}
         onLogout={handleLogout}
       />
+
       <main className="main-content">
-        {currentPage === "home" ? (
-          <HomePage
-            onNavigateToProducts={(category) =>
-              handleNavigate("products", category || "Tümü")
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/products" element={<ProductsPage />} />
+          <Route path="/products/:id" element={<ProductDetailPage />} />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <ProfilePage currentUser={currentUser} onLogout={handleLogout} />
+              </ProtectedRoute>
             }
           />
-        ) : (
-          <ProductsPage
-            initialCategory={selectedCategory}
-            searchQuery={searchQuery}
-            onNavigateHome={() => handleNavigate("home")}
-          />
-        )}
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
       </main>
+
       <Footer />
 
       {/* Authentication Modal */}
       <AuthModal
         isOpen={isAuthModalOpen}
         initialMode={authMode}
-        onClose={() => setIsAuthModalOpen(false)}
+        onClose={handleCloseAuth}
         onAuthSuccess={(user) => {
           setCurrentUser(user);
         }}

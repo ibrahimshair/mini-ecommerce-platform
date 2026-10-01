@@ -335,16 +335,21 @@ Frontend uygulaması varsayılan olarak `http://localhost:5173` adresinde çalı
 - [x] **Gün 4 (24 Eylül):** Express.js backend altyapısı, CORS, dotenv, morgan ve sağlık kontrolü kuruldu (#29).
 - [x] **Gün 5 (25 Eylül):** Çok katmanlı mimari, controller/service/client yapısı ve dokümantasyon tamamlandı (#30).
 
-### 🚀 2. Hafta (Gün 6–10) — Milestone 2: Frontend Ürün Kataloğu & Veritabanı Modelleri (Devam Ediyor)
+### ✅ 2. Hafta (Gün 6–10) — Milestone 2: Frontend Ürün Kataloğu & Veritabanı Modelleri (%100 Tamamlandı)
 - [x] **Gün 6 (28 Eylül):** Ürün Kataloğu sayfası (`ProductsPage`), filtreleme/sıralama, hızlı bakış modalı (`ProductDetailModal`) ve PostgreSQL veri şemaları/modelleri (`001_initial_schema.sql`, `002_seed_initial_data.sql`, `product.model.js`, `category.model.js`) tamamlandı (#31).
 - [x] **Gün 7 (29 Eylül):** Backend-DB bağlantı havuzu entegrasyonu, `/api/health` veritabanı durum raporlaması, Kategori REST API (`category.controller.js`, `category.routes.js`), DB entegrasyon doğrulama scripti (`npm run test:db`) ve ana sayfa kategori vitrini tamamlandı (#32).
 - [x] **Gün 8 (30 Eylül):** Kullanıcı kayıt (Register) API, bcryptjs şifre hashleme, mükerrer e-posta kontrolü, doğrulama middleware (`validateRegister`) ve interaktif `AuthModal` arayüzü tamamlandı (#33).
 - [x] **Gün 9 (01 Ekim):** Kullanıcı giriş (Login) & JWT token üretimi, şifre doğrulaması, oturum yönetimi ve AuthModal entegrasyonu tamamlandı (#34).
 - [x] **Gün 10 (02 Ekim):** Auth middleware (`authenticate`), rol bazlı yetkilendirme (`authorizeRoles`), `/api/auth/me` profili ve korumalı rota kontrolleri tamamlandı (#35).
 
+### 🚀 3. Hafta (Gün 11–15) — Milestone 3: Kimlik Doğrulama & Kullanıcı Profil Arayüzleri (Devam Ediyor)
+- [x] **Gün 11 (05 Ekim):** React Router DOM çok sayfalı yönlendirme mimarisi (`/`, `/products`, `/products/:id`, `/profile`, `* 404`), korumalı rota kontrolü (`ProtectedRoute`) ve dinamik profil sayfası tamamlandı (#36).
+- [ ] **Gün 12 (06 Ekim):** Kullanıcı Kayıt & Giriş UI Arayüzleri (#37).
+- [ ] **Gün 13 (07 Ekim):** Kullanıcı profil bilgileri ve adres yönetimi (#38).
+- [ ] **Gün 14 (08 Ekim):** Frontend-Backend Auth entegrasyonu ve JWT interceptor (#39).
+- [ ] **Gün 15 (09 Ekim):** Hafta 3 Sprint Review ve hata düzeltmeleri (#40).
 
 ### ⏳ Gelecek Haftaların Yol Haritası
-- [ ] **3. Hafta (Gün 11–15) — Milestone 3:** Kimlik Doğrulama & Kullanıcı Profil Arayüzleri (#36–#40)
 - [ ] **4. Hafta (Gün 16–20) — Milestone 4:** Ürün Yönetimi & Alışveriş Sepeti (#41–#45)
 - [ ] **5. Hafta (Gün 21–25) — Milestone 5:** Sipariş Sistemi & Yönetici (Admin) Paneli (#46–#50)
 - [ ] **6. Hafta (Gün 26–30) — Milestone 6:** Frontend-Backend Entegrasyonu & Güvenlik (#51–#55)

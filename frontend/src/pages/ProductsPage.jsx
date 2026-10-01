@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import ProductCard from "../components/ProductCard";
 import ProductDetailModal from "../components/ProductDetailModal";
 import api from "../services/api";
@@ -114,9 +115,13 @@ const DEFAULT_CATEGORIES = [
 ];
 
 function ProductsPage({ initialCategory = "Tümü", searchQuery = "", onNavigateHome }) {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const urlCategory = searchParams.get("category");
+  const urlSearch = searchParams.get("search");
+
   const [products, setProducts] = useState(DEFAULT_PRODUCTS);
   const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
-  const [selectedCategory, setSelectedCategory] = useState(initialCategory);
+  const [selectedCategory, setSelectedCategory] = useState(urlCategory || initialCategory);
   const [sortBy, setSortBy] = useState("recommended");
   const [maxPrice, setMaxPrice] = useState(5000);
   const [onlyInStock, setOnlyInStock] = useState(false);
@@ -124,12 +129,14 @@ function ProductsPage({ initialCategory = "Tümü", searchQuery = "", onNavigate
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
-  // Sync initial category if changed externally
+  // Sync initial category if URL or prop changes
   useEffect(() => {
-    if (initialCategory) {
+    if (urlCategory) {
+      setSelectedCategory(urlCategory);
+    } else if (initialCategory && !urlCategory) {
       setSelectedCategory(initialCategory);
     }
-  }, [initialCategory]);
+  }, [urlCategory, initialCategory]);
 
   // Fetch products and categories via API client
   useEffect(() => {
@@ -168,6 +175,8 @@ function ProductsPage({ initialCategory = "Tümü", searchQuery = "", onNavigate
   }, []);
 
   // Filter and sort products
+  const activeSearch = urlSearch !== null ? urlSearch : searchQuery;
+
   const filteredProducts = useMemo(() => {
     return products
       .filter((product) => {
@@ -185,12 +194,12 @@ function ProductsPage({ initialCategory = "Tümü", searchQuery = "", onNavigate
 
         // Search query filter
         const matchesSearch =
-          !searchQuery ||
-          product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          !activeSearch ||
+          product.name.toLowerCase().includes(activeSearch.toLowerCase()) ||
           (product.description &&
-            product.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
+            product.description.toLowerCase().includes(activeSearch.toLowerCase())) ||
           (product.category &&
-            product.category.toLowerCase().includes(searchQuery.toLowerCase()));
+            product.category.toLowerCase().includes(activeSearch.toLowerCase()));
 
         return matchesCategory && matchesPrice && matchesStock && matchesSearch;
       })
@@ -200,13 +209,14 @@ function ProductsPage({ initialCategory = "Tümü", searchQuery = "", onNavigate
         if (sortBy === "rating-desc") return Number(b.rating) - Number(a.rating);
         return 0; // recommended
       });
-  }, [products, selectedCategory, maxPrice, onlyInStock, sortBy, searchQuery]);
+  }, [products, selectedCategory, maxPrice, onlyInStock, sortBy, activeSearch]);
 
   const handleResetFilters = () => {
     setSelectedCategory("Tümü");
     setMaxPrice(5000);
     setOnlyInStock(false);
     setSortBy("recommended");
+    setSearchParams(new URLSearchParams());
   };
 
   return (
@@ -215,13 +225,13 @@ function ProductsPage({ initialCategory = "Tümü", searchQuery = "", onNavigate
       <div className="products-banner">
         <div className="container">
           <div className="banner-breadcrumb">
-            <button
-              type="button"
+            <Link
+              to="/"
               className="breadcrumb-link"
               onClick={onNavigateHome}
             >
               Ana Sayfa
-            </button>{" "}
+            </Link>{" "}
             &gt; <span>Ürün Kataloğu</span>
             {selectedCategory !== "Tümü" && <span> &gt; {selectedCategory}</span>}
           </div>
@@ -281,6 +291,13 @@ function ProductsPage({ initialCategory = "Tümü", searchQuery = "", onNavigate
                     checked={selectedCategory === cat}
                     onChange={() => {
                       setSelectedCategory(cat);
+                      const newParams = new URLSearchParams(searchParams);
+                      if (cat && cat !== "Tümü") {
+                        newParams.set("category", cat);
+                      } else {
+                        newParams.delete("category");
+                      }
+                      setSearchParams(newParams);
                       if (mobileFilterOpen) setMobileFilterOpen(false);
                     }}
                   />
