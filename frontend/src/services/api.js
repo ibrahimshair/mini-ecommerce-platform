@@ -86,6 +86,10 @@ class ApiService {
       const data = await response.json();
 
       if (!response.ok) {
+        if (response.status === 401 && token) {
+          // Token expired or invalidated on server
+          this.logout();
+        }
         throw new Error(data.message || `HTTP error! Status: ${response.status}`);
       }
 
@@ -169,7 +173,12 @@ class ApiService {
     }
     return response;
   }
+
+  async getMe() {
+    return this.get("/auth/me");
+  }
 }
 
 export const api = new ApiService(API_BASE_URL);
 export default api;
+
