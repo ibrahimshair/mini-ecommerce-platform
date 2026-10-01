@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import ProductCard from "../components/ProductCard";
 import ProductDetailModal from "../components/ProductDetailModal";
 import api from "../services/api";
@@ -79,6 +80,8 @@ function HomePage({ onNavigateToProducts }) {
   const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
   const [selectedProduct, setSelectedProduct] = useState(null);
 
+  const navigate = useNavigate();
+
   // Load live categories from backend API
   useEffect(() => {
     let isMounted = true;
@@ -99,6 +102,11 @@ function HomePage({ onNavigateToProducts }) {
     if (onNavigateToProducts) {
       onNavigateToProducts(categoryName);
     }
+    if (!categoryName || categoryName === "Tümü") {
+      navigate("/products");
+    } else {
+      navigate(`/products?category=${encodeURIComponent(categoryName)}`);
+    }
   };
 
   return (
@@ -118,10 +126,9 @@ function HomePage({ onNavigateToProducts }) {
               binlerce kaliteli seçenek, hızlı teslimat ve özel fırsatlarla seni bekliyor.
             </p>
             <div className="hero-actions">
-              <button
-                type="button"
+              <Link
+                to="/products"
                 className="btn btn-primary btn-lg"
-                onClick={() => handleCategorySelect("Tümü")}
               >
                 Alışverişe Başla
                 <svg
@@ -136,14 +143,13 @@ function HomePage({ onNavigateToProducts }) {
                   <path d="M5 12h14" />
                   <path d="m12 5 7 7-7 7" />
                 </svg>
-              </button>
-              <button
-                type="button"
+              </Link>
+              <Link
+                to="/products"
                 className="btn btn-outline btn-lg"
-                onClick={() => handleCategorySelect("Tümü")}
               >
                 Kataloğu İncele
-              </button>
+              </Link>
             </div>
 
             {/* Micro Stats */}
