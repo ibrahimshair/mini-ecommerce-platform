@@ -1,20 +1,19 @@
 import { useState } from "react";
+import { Link, NavLink, useNavigate, useSearchParams } from "react-router-dom";
 import "./Navbar.css";
 
-function Navbar({
-  currentPage = "home",
-  onNavigate,
-  searchQuery = "",
-  onSearchChange,
-  currentUser,
-  onOpenAuth,
-  onLogout,
-}) {
+function Navbar({ currentUser, onOpenAuth, onLogout }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [searchParams] = useSearchParams();
+  const [searchValue, setSearchValue] = useState(searchParams.get("search") || "");
+  const navigate = useNavigate();
 
-  const handleNavClick = (page, category = "Tümü") => {
-    if (onNavigate) {
-      onNavigate(page, category);
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    if (searchValue.trim()) {
+      navigate(`/products?search=${encodeURIComponent(searchValue.trim())}`);
+    } else {
+      navigate("/products");
     }
     setIsMobileMenuOpen(false);
   };
@@ -23,11 +22,10 @@ function Navbar({
     <header className="site-header">
       <div className="container header-container">
         {/* Brand Logo */}
-        <button
-          type="button"
-          onClick={() => handleNavClick("home")}
+        <Link
+          to="/"
           className="brand-logo"
-          style={{ background: "none", border: "none", cursor: "pointer", textAlign: "left" }}
+          onClick={() => setIsMobileMenuOpen(false)}
         >
           <svg
             className="brand-icon"
@@ -45,10 +43,10 @@ function Navbar({
           <span className="brand-name">
             Mini<span>Store</span>
           </span>
-        </button>
+        </Link>
 
-        {/* Search Bar */}
-        <div className="header-search">
+        {/* Search Bar Form */}
+        <form className="header-search" onSubmit={handleSearchSubmit}>
           <svg
             className="search-icon"
             viewBox="0 0 24 24"
@@ -65,48 +63,43 @@ function Navbar({
             type="text"
             placeholder="Ürün, kategori veya marka ara..."
             className="search-input"
-            value={searchQuery}
-            onChange={(e) => {
-              if (onSearchChange) onSearchChange(e.target.value);
-            }}
-            onFocus={() => {
-              if (currentPage !== "products" && onNavigate) {
-                onNavigate("products");
-              }
-            }}
+            value={searchValue}
+            onChange={(e) => setSearchValue(e.target.value)}
           />
-        </div>
+        </form>
 
         {/* Desktop Navigation Links */}
         <nav className={`nav-menu ${isMobileMenuOpen ? "is-open" : ""}`}>
-          <button
-            type="button"
-            className={`nav-link ${currentPage === "home" ? "active" : ""}`}
-            onClick={() => handleNavClick("home")}
+          <NavLink
+            to="/"
+            end
+            className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
+            onClick={() => setIsMobileMenuOpen(false)}
           >
             Ana Sayfa
-          </button>
-          <button
-            type="button"
-            className={`nav-link ${currentPage === "products" ? "active" : ""}`}
-            onClick={() => handleNavClick("products")}
+          </NavLink>
+          <NavLink
+            to="/products"
+            end
+            className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
+            onClick={() => setIsMobileMenuOpen(false)}
           >
             Ürün Kataloğu
-          </button>
-          <button
-            type="button"
+          </NavLink>
+          <Link
+            to="/products?category=Elektronik"
             className="nav-link"
-            onClick={() => handleNavClick("products", "Elektronik")}
+            onClick={() => setIsMobileMenuOpen(false)}
           >
             Elektronik
-          </button>
-          <button
-            type="button"
+          </Link>
+          <Link
+            to="/products?category=Giyim%20%26%20Moda"
             className="nav-link"
-            onClick={() => handleNavClick("products", "Giyim & Moda")}
+            onClick={() => setIsMobileMenuOpen(false)}
           >
             Moda
-          </button>
+          </Link>
         </nav>
 
         {/* Right Actions (Cart & Auth) */}
@@ -138,7 +131,19 @@ function Navbar({
           <div className="auth-buttons">
             {currentUser ? (
               <div className="user-profile-menu" style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                <span style={{ fontSize: "0.875rem", fontWeight: "600", color: "var(--text-primary)", display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
+                <Link
+                  to="/profile"
+                  style={{
+                    fontSize: "0.875rem",
+                    fontWeight: "600",
+                    color: "var(--text-primary)",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "0.4rem",
+                    textDecoration: "none",
+                  }}
+                  title="Profilimi Görüntüle"
+                >
                   👋 {currentUser.name?.split(" ")[0]}
                   {currentUser.role === "admin" && (
                     <span
@@ -155,7 +160,14 @@ function Navbar({
                       Admin
                     </span>
                   )}
-                </span>
+                </Link>
+                <Link
+                  to="/profile"
+                  className="btn btn-outline btn-sm"
+                  style={{ textDecoration: "none" }}
+                >
+                  Profilim
+                </Link>
                 <button
                   type="button"
                   className="btn btn-outline btn-sm"
