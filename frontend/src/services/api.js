@@ -177,6 +177,51 @@ class ApiService {
   async getMe() {
     return this.get("/auth/me");
   }
+
+  async updateProfile(profileData) {
+    const response = await this.put("/auth/me", profileData);
+    if (response?.data) {
+      this.setCurrentUser(response.data);
+    }
+    return response;
+  }
+
+  // Address Management Helpers (Persisted in localStorage per user)
+  getAddresses(userId = "default") {
+    try {
+      const key = `ministore_addresses_${userId}`;
+      const saved = localStorage.getItem(key);
+      if (saved) {
+        return JSON.parse(saved);
+      }
+      const initial = [
+        {
+          id: "addr-1",
+          title: "Ev",
+          fullName: "Ahmet Yılmaz",
+          phone: "0555 123 45 67",
+          city: "İstanbul",
+          district: "Kadıköy",
+          detailedAddress: "Moda Cad. No: 14 Daire: 5",
+          postalCode: "34710",
+          isDefault: true,
+        },
+      ];
+      localStorage.setItem(key, JSON.stringify(initial));
+      return initial;
+    } catch {
+      return [];
+    }
+  }
+
+  saveAddresses(addresses, userId = "default") {
+    try {
+      const key = `ministore_addresses_${userId}`;
+      localStorage.setItem(key, JSON.stringify(addresses));
+    } catch (e) {
+      console.warn("Adresler kaydedilemedi:", e);
+    }
+  }
 }
 
 export const api = new ApiService(API_BASE_URL);
