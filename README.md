@@ -344,7 +344,7 @@ Frontend uygulaması varsayılan olarak `http://localhost:5173` adresinde çalı
 
 ### 🚀 3. Hafta (Gün 11–15) — Milestone 3: Kimlik Doğrulama & Kullanıcı Profil Arayüzleri (Devam Ediyor)
 - [x] **Gün 11 (05 Ekim):** React Router DOM çok sayfalı yönlendirme mimarisi (`/`, `/products`, `/products/:id`, `/profile`, `* 404`), korumalı rota kontrolü (`ProtectedRoute`) ve dinamik profil sayfası tamamlandı (#36).
-- [ ] **Gün 12 (06 Ekim):** Kullanıcı Kayıt & Giriş UI Arayüzleri (#37).
+- [x] **Gün 12 (06 Ekim):** Kullanıcı Kayıt & Giriş UI Arayüzleri (#37).
 - [ ] **Gün 13 (07 Ekim):** Kullanıcı profil bilgileri ve adres yönetimi (#38).
 - [ ] **Gün 14 (08 Ekim):** Frontend-Backend Auth entegrasyonu ve JWT interceptor (#39).
 - [ ] **Gün 15 (09 Ekim):** Hafta 3 Sprint Review ve hata düzeltmeleri (#40).
