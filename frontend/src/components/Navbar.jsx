@@ -179,20 +179,22 @@ function Navbar({ currentUser, onOpenAuth, onLogout }) {
               </div>
             ) : (
               <>
-                <button
-                  type="button"
+                <Link
+                  to="/login"
                   className="btn btn-outline btn-sm"
-                  onClick={() => onOpenAuth && onOpenAuth("login")}
+                  style={{ textDecoration: "none" }}
+                  onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Giriş Yap
-                </button>
-                <button
-                  type="button"
+                </Link>
+                <Link
+                  to="/register"
                   className="btn btn-primary btn-sm"
-                  onClick={() => onOpenAuth && onOpenAuth("register")}
+                  style={{ textDecoration: "none" }}
+                  onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Kayıt Ol
-                </button>
+                </Link>
               </>
             )}
           </div>

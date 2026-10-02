@@ -5,6 +5,8 @@ import HomePage from "./pages/HomePage";
 import ProductsPage from "./pages/ProductsPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
 import ProfilePage from "./pages/ProfilePage";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import Footer from "./components/Footer";
 import AuthModal from "./components/AuthModal";
@@ -85,6 +87,26 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/products" element={<ProductsPage />} />
           <Route path="/products/:id" element={<ProductDetailPage />} />
+          <Route
+            path="/login"
+            element={
+              <LoginPage
+                onAuthSuccess={(user) => {
+                  setCurrentUser(user);
+                }}
+              />
+            }
+          />
+          <Route
+            path="/register"
+            element={
+              <RegisterPage
+                onAuthSuccess={(user) => {
+                  setCurrentUser(user);
+                }}
+              />
+            }
+          />
           <Route
             path="/profile"
             element={
