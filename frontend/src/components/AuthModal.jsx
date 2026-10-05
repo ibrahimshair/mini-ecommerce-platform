@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import api from "../services/api";
+import { useAuth } from "../context/AuthContext";
 import "./AuthModal.css";
 
 function AuthModal({ isOpen, initialMode = "register", onClose, onAuthSuccess }) {
+  const { login, register } = useAuth();
   const [mode, setMode] = useState(initialMode); // 'login' | 'register'
   const [formData, setFormData] = useState({
     name: "",
@@ -89,10 +90,10 @@ function AuthModal({ isOpen, initialMode = "register", onClose, onAuthSuccess })
           phone: formData.phone || undefined,
         };
 
-        const res = await api.register(payload);
+        const res = await register(payload);
 
-        setSuccessMessage(`Tebrikler ${res.data.name}! Hesabınız başarıyla oluşturuldu.`);
-        if (onAuthSuccess) {
+        setSuccessMessage(`Tebrikler ${res?.data?.name || "Kullanıcı"}! Hesabınız başarıyla oluşturuldu.`);
+        if (onAuthSuccess && res?.data) {
           onAuthSuccess(res.data);
         }
         setTimeout(() => {
@@ -100,14 +101,14 @@ function AuthModal({ isOpen, initialMode = "register", onClose, onAuthSuccess })
         }, 1500);
       } else {
         // Login mode
-        const res = await api.login({
+        const res = await login({
           email: formData.email,
           password: formData.password,
         });
 
-        const loggedInUser = res.data.user;
-        setSuccessMessage(`Hoş geldiniz, ${loggedInUser.name}! Giriş başarılı.`);
-        if (onAuthSuccess) {
+        const loggedInUser = res?.data?.user;
+        setSuccessMessage(`Hoş geldiniz, ${loggedInUser?.name || "Kullanıcı"}! Giriş başarılı.`);
+        if (onAuthSuccess && loggedInUser) {
           onAuthSuccess(loggedInUser);
         }
         setTimeout(() => {
