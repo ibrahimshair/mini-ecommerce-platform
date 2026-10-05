@@ -342,12 +342,12 @@ Frontend uygulaması varsayılan olarak `http://localhost:5173` adresinde çalı
 - [x] **Gün 9 (01 Ekim):** Kullanıcı giriş (Login) & JWT token üretimi, şifre doğrulaması, oturum yönetimi ve AuthModal entegrasyonu tamamlandı (#34).
 - [x] **Gün 10 (02 Ekim):** Auth middleware (`authenticate`), rol bazlı yetkilendirme (`authorizeRoles`), `/api/auth/me` profili ve korumalı rota kontrolleri tamamlandı (#35).
 
-### 🚀 3. Hafta (Gün 11–15) — Milestone 3: Kimlik Doğrulama & Kullanıcı Profil Arayüzleri (Devam Ediyor)
+### ✅ 3. Hafta (Gün 11–15) — Milestone 3: Kimlik Doğrulama & Kullanıcı Profil Arayüzleri (%100 Tamamlandı)
 - [x] **Gün 11 (05 Ekim):** React Router DOM çok sayfalı yönlendirme mimarisi (`/`, `/products`, `/products/:id`, `/profile`, `* 404`), korumalı rota kontrolü (`ProtectedRoute`) ve dinamik profil sayfası tamamlandı (#36).
 - [x] **Gün 12 (06 Ekim):** Kullanıcı Kayıt & Giriş UI Arayüzleri (#37).
 - [x] **Gün 13 (07 Ekim):** Kullanıcı profil bilgileri ve adres yönetimi (#38).
 - [x] **Gün 14 (08 Ekim):** Frontend-Backend Auth entegrasyonu ve JWT interceptor (#39).
-- [ ] **Gün 15 (09 Ekim):** Hafta 3 Sprint Review ve hata düzeltmeleri (#40).
+- [x] **Gün 15 (09 Ekim):** Hafta 3 Sprint Review, E2E auth test paketi (`npm run test:auth`) ve hata düzeltmeleri (#40).
 
 ### ⏳ Gelecek Haftaların Yol Haritası
 - [ ] **4. Hafta (Gün 16–20) — Milestone 4:** Ürün Yönetimi & Alışveriş Sepeti (#41–#45)
