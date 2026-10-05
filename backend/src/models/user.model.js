@@ -33,6 +33,31 @@ const User = {
     const res = await query(text, [name, email, passwordHash, role, phone]);
     return res.rows[0];
   },
+
+  async updateProfile(id, { name, phone }) {
+    const text = `
+      UPDATE users
+      SET name = COALESCE($2, name),
+          phone = COALESCE($3, phone),
+          updated_at = NOW()
+      WHERE id = $1
+      RETURNING id, name, email, role, phone, created_at AS "createdAt", updated_at AS "updatedAt";
+    `;
+    const res = await query(text, [id, name, phone]);
+    return res.rows[0] || null;
+  },
+
+  async updatePassword(id, passwordHash) {
+    const text = `
+      UPDATE users
+      SET password_hash = $2,
+          updated_at = NOW()
+      WHERE id = $1
+      RETURNING id;
+    `;
+    const res = await query(text, [id, passwordHash]);
+    return res.rows[0] || null;
+  },
 };
 
 module.exports = User;

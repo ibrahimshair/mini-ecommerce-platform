@@ -262,6 +262,120 @@ const AuthController = {
       next(error);
     }
   },
+
+  /**
+   * PUT /api/auth/me
+   * Updates current user's profile (name, phone) and optionally changes password.
+   */
+  async updateMe(req, res, next) {
+    try {
+      const userId = req.user?.id;
+      const { name, phone, currentPassword, newPassword } = req.body;
+
+      // 1. Fetch user to check password or current data
+      let user = null;
+      let isDb = true;
+      try {
+        const found = await User.findById(userId);
+        if (found) {
+          const emailUser = await User.findByEmail(found.email);
+          user = emailUser || found;
+        }
+      } catch (err) {
+        isDb = false;
+        user = null;
+      }
+
+      if (!user) {
+        user = FALLBACK_USERS.find((u) => u.id === userId);
+        isDb = false;
+      }
+
+      if (!user) {
+        return errorResponse(res, {
+          statusCode: 404,
+          message: "Kullanıcı bulunamadı.",
+        });
+      }
+
+      // 2. If password change is requested
+      if (newPassword) {
+        if (!currentPassword) {
+          return errorResponse(res, {
+            statusCode: 400,
+            message: "Şifrenizi değiştirmek için lütfen mevcut şifrenizi giriniz.",
+            errors: [{ field: "currentPassword", message: "Mevcut şifre zorunludur." }],
+          });
+        }
+
+        const isMatch = await bcrypt.compare(
+          currentPassword,
+          user.password_hash || DEMO_PASSWORD_HASH
+        );
+
+        if (!isMatch) {
+          return errorResponse(res, {
+            statusCode: 400,
+            message: "Mevcut şifreniz hatalı.",
+            errors: [{ field: "currentPassword", message: "Mevcut şifre hatalı." }],
+          });
+        }
+
+        if (newPassword.length < 6) {
+          return errorResponse(res, {
+            statusCode: 400,
+            message: "Yeni şifre en az 6 karakter olmalıdır.",
+            errors: [{ field: "newPassword", message: "Şifre en az 6 karakter olmalıdır." }],
+          });
+        }
+
+        const newHash = await bcrypt.hash(newPassword, 10);
+        if (isDb) {
+          try {
+            await User.updatePassword(userId, newHash);
+          } catch (e) {
+            user.password_hash = newHash;
+          }
+        } else {
+          user.password_hash = newHash;
+        }
+      }
+
+      // 3. Update profile information (name, phone)
+      let updatedUser = null;
+      if (isDb) {
+        try {
+          updatedUser = await User.updateProfile(userId, { name, phone });
+        } catch (e) {
+          user.name = name || user.name;
+          user.phone = phone !== undefined ? phone : user.phone;
+          updatedUser = user;
+        }
+      } else {
+        user.name = name || user.name;
+        user.phone = phone !== undefined ? phone : user.phone;
+        updatedUser = user;
+      }
+
+      const responseProfile = {
+        id: userId,
+        name: updatedUser?.name || name || user.name,
+        email: user.email,
+        role: user.role || "user",
+        phone: updatedUser?.phone !== undefined ? updatedUser.phone : (phone || user.phone || null),
+        avatarUrl: user.avatar_url || user.avatarUrl || null,
+        createdAt: user.created_at || user.createdAt || null,
+      };
+
+      return successResponse(res, {
+        statusCode: 200,
+        message: "Profil bilgileriniz başarıyla güncellendi.",
+        data: responseProfile,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
 };
 
 module.exports = AuthController;

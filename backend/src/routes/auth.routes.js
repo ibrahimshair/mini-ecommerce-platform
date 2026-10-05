@@ -14,5 +14,8 @@ router.post("/login", validateLogin, AuthController.login);
 // Protected: Get current authenticated user profile
 router.get("/me", authenticate, AuthController.getMe);
 
+// Protected: Update user profile and change password
+router.put("/me", authenticate, AuthController.updateMe);
+
 module.exports = router;
 
