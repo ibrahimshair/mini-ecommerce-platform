@@ -1,5 +1,5 @@
 /**
- * Central API Client Service
+ * Central API Client Service with Request & Response Interceptors
  * Handles communication with the Express.js Backend REST API
  */
 
@@ -10,6 +10,76 @@ const USER_KEY = "mini_ecommerce_user";
 class ApiService {
   constructor(baseUrl) {
     this.baseUrl = baseUrl;
+    this.requestInterceptors = [];
+    this.responseInterceptors = [];
+    this.unauthorizedHandlers = new Set();
+
+    // Register default built-in JWT Authorization request interceptor
+    this.addRequestInterceptor(async (config) => {
+      const token = this.getToken();
+      if (token) {
+        config.headers = {
+          ...config.headers,
+          Authorization: `Bearer ${token}`,
+        };
+      }
+      return config;
+    });
+
+    // Register default built-in 401 Unauthorized response interceptor
+    this.addResponseInterceptor(
+      async (response) => response,
+      async (error) => {
+        if (error.status === 401) {
+          console.warn("[Auth Interceptor] 401 Unauthorized detected. Clearing session.");
+          this.logout();
+          this.notifyUnauthorized(error);
+        }
+        return Promise.reject(error);
+      }
+    );
+  }
+
+  // Interceptor Registration Methods
+  addRequestInterceptor(interceptor) {
+    this.requestInterceptors.push(interceptor);
+    return () => {
+      this.requestInterceptors = this.requestInterceptors.filter((fn) => fn !== interceptor);
+    };
+  }
+
+  addResponseInterceptor(onFulfilled, onRejected) {
+    const interceptor = { onFulfilled, onRejected };
+    this.responseInterceptors.push(interceptor);
+    return () => {
+      this.responseInterceptors = this.responseInterceptors.filter((item) => item !== interceptor);
+    };
+  }
+
+  onUnauthorized(handler) {
+    this.unauthorizedHandlers.add(handler);
+    return () => {
+      this.unauthorizedHandlers.delete(handler);
+    };
+  }
+
+  notifyUnauthorized(error) {
+    this.unauthorizedHandlers.forEach((handler) => {
+      try {
+        handler(error);
+      } catch (err) {
+        console.error("Error in unauthorized handler:", err);
+      }
+    });
+
+    // Dispatch global custom event for browser-wide notification
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("auth:unauthorized", {
+          detail: { message: "Oturum süreniz doldu, lütfen tekrar giriş yapın." },
+        })
+      );
+    }
   }
 
   // Token & Session Storage Management
@@ -63,39 +133,75 @@ class ApiService {
     }
   }
 
+  // Core Request Method with Interceptor Chain Execution
   async request(endpoint, options = {}) {
     const url = `${this.baseUrl}${endpoint}`;
-    const token = this.getToken();
 
-    const defaultHeaders = {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    };
-
-    const config = {
+    let config = {
       ...options,
       headers: {
-        ...defaultHeaders,
+        "Content-Type": "application/json",
+        Accept: "application/json",
         ...options.headers,
       },
     };
 
+    // Execute Request Interceptors
+    for (const interceptor of this.requestInterceptors) {
+      try {
+        config = await interceptor(config);
+      } catch (interceptErr) {
+        return Promise.reject(interceptErr);
+      }
+    }
+
     try {
       const response = await fetch(url, config);
-      const data = await response.json();
 
-      if (!response.ok) {
-        if (response.status === 401 && token) {
-          // Token expired or invalidated on server
-          this.logout();
-        }
-        throw new Error(data.message || `HTTP error! Status: ${response.status}`);
+      // Handle non-JSON response safely
+      let data = null;
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        data = await response.json();
+      } else {
+        const text = await response.text();
+        data = text ? { message: text } : {};
       }
 
-      return data;
+      if (!response.ok) {
+        const error = new Error(data.message || `HTTP error! Status: ${response.status}`);
+        error.status = response.status;
+        error.data = data;
+        error.response = response;
+
+        // Run through rejection interceptors
+        for (const { onRejected } of this.responseInterceptors) {
+          if (typeof onRejected === "function") {
+            try {
+              await onRejected(error);
+            } catch (handledErr) {
+              return Promise.reject(handledErr);
+            }
+          }
+        }
+
+        throw error;
+      }
+
+      // Run through success interceptors
+      let finalData = data;
+      for (const { onFulfilled } of this.responseInterceptors) {
+        if (typeof onFulfilled === "function") {
+          finalData = await onFulfilled(finalData);
+        }
+      }
+
+      return finalData;
     } catch (error) {
-      console.error(`[API Error] Request failed on ${endpoint}:`, error.message);
+      // If error wasn't already caught by rejection interceptors
+      if (!error.status) {
+        console.error(`[API Network Error] Request failed on ${endpoint}:`, error.message);
+      }
       throw error;
     }
   }
@@ -160,7 +266,8 @@ class ApiService {
 
   // Authentication Endpoints
   async register(userData) {
-    return this.post("/auth/register", userData);
+    const response = await this.post("/auth/register", userData);
+    return response;
   }
 
   async login(credentials) {
@@ -226,4 +333,3 @@ class ApiService {
 
 export const api = new ApiService(API_BASE_URL);
 export default api;
-
