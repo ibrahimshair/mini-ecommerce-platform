@@ -8,7 +8,8 @@
     "dev": "node --watch src/server.js",
     "migrate": "node src/scripts/runMigrations.js",
     "test:db": "node src/scripts/testDbIntegration.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test:auth": "node src/scripts/testMilestone3Auth.js",
+    "test": "npm run test:auth"
   },
   "keywords": [],
   "author": "",

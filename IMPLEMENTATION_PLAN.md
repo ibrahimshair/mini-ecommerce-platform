@@ -822,27 +822,27 @@ Her önemli görev tamamlandıktan sonra commit oluşturulacak ve GitHub'a push 
 
 | Faz   | Görevler | Durum |
 | ----- | -------- | ----- |
-| Faz 1 | G1–G7    | [ ]   |
-| Faz 2 | G8–G14   | [ ]   |
+| Faz 1 | G1–G7    | [x]   |
+| Faz 2 | G8–G14   | [x]   |
 | Faz 3 | G15–G24  | [ ]   |
 | Faz 4 | G25–G35  | [ ]   |
 
 ## Görev Durumları
 
-* [ ] G1 — Proje iskeleti
-* [ ] G2 — Scrumban/Kanban
-* [ ] G3 — React
-* [ ] G4 — Express
-* [ ] G5 — PostgreSQL
-* [ ] G6 — Database modelleri
-* [ ] G7 — DB entegrasyonu
-* [ ] G8 — Register
-* [ ] G9 — Login/JWT
-* [ ] G10 — Auth middleware
-* [ ] G11 — Frontend routing
-* [ ] G12 — Login/Register UI
-* [ ] G13 — Profile
-* [ ] G14 — Auth entegrasyonu
+* [x] G1 — Proje iskeleti
+* [x] G2 — Scrumban/Kanban
+* [x] G3 — React
+* [x] G4 — Express
+* [x] G5 — PostgreSQL
+* [x] G6 — Database modelleri
+* [x] G7 — DB entegrasyonu
+* [x] G8 — Register
+* [x] G9 — Login/JWT
+* [x] G10 — Auth middleware
+* [x] G11 — Frontend routing
+* [x] G12 — Login/Register UI
+* [x] G13 — Profile
+* [x] G14 — Auth entegrasyonu
 * [ ] G15 — Categories
 * [ ] G16 — Products
 * [ ] G17 — Product detail
