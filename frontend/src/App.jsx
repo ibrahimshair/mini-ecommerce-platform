@@ -11,16 +11,28 @@ import NotFoundPage from "./pages/NotFoundPage";
 import Footer from "./components/Footer";
 import AuthModal from "./components/AuthModal";
 import ProtectedRoute from "./components/ProtectedRoute";
-import api from "./services/api";
+import { useAuth } from "./context/AuthContext";
 
 function App() {
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
+  const { currentUser, logout, updateUser } = useAuth();
 
-  // Authentication modal state with persistent user initialization
+  // Authentication modal state
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState("register");
-  const [currentUser, setCurrentUser] = useState(() => api.getCurrentUser());
+  const [sessionExpiredNotice, setSessionExpiredNotice] = useState(false);
+
+  // Listen for global session expiration event emitted by api interceptor
+  useEffect(() => {
+    const handleUnauthorized = (e) => {
+      setSessionExpiredNotice(true);
+      setTimeout(() => setSessionExpiredNotice(false), 5000);
+    };
+
+    window.addEventListener("auth:unauthorized", handleUnauthorized);
+    return () => window.removeEventListener("auth:unauthorized", handleUnauthorized);
+  }, []);
 
   // Listen to URL query parameter (?auth=login or ?auth=register)
   useEffect(() => {
@@ -36,25 +48,6 @@ function App() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [location.pathname]);
 
-  // Validate active session with backend /api/auth/me on mount
-  useEffect(() => {
-    const token = api.getToken();
-    if (token) {
-      api
-        .getMe()
-        .then((res) => {
-          if (res?.data) {
-            setCurrentUser(res.data);
-            api.setCurrentUser(res.data);
-          }
-        })
-        .catch(() => {
-          // Token expired or invalid: reset current user
-          setCurrentUser(null);
-        });
-    }
-  }, []);
-
   const handleOpenAuth = (mode = "register") => {
     setAuthMode(mode);
     setIsAuthModalOpen(true);
@@ -69,17 +62,48 @@ function App() {
     }
   };
 
-  const handleLogout = () => {
-    api.logout();
-    setCurrentUser(null);
-  };
-
   return (
     <div className="app-container">
+      {sessionExpiredNotice && (
+        <div
+          style={{
+            backgroundColor: "#fef2f2",
+            color: "#991b1b",
+            borderBottom: "1px solid #fecaca",
+            padding: "0.75rem 1rem",
+            textAlign: "center",
+            fontSize: "0.875rem",
+            fontWeight: 600,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "0.5rem",
+            position: "sticky",
+            top: 0,
+            zIndex: 1100,
+          }}
+        >
+          <span>⚠️ Oturum süreniz sona erdi. Güvenliğiniz için lütfen tekrar giriş yapın.</span>
+          <button
+            type="button"
+            onClick={() => setSessionExpiredNotice(false)}
+            style={{
+              background: "transparent",
+              border: "none",
+              cursor: "pointer",
+              fontWeight: "bold",
+              marginLeft: "1rem",
+            }}
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
       <Navbar
         currentUser={currentUser}
         onOpenAuth={handleOpenAuth}
-        onLogout={handleLogout}
+        onLogout={logout}
       />
 
       <main className="main-content">
@@ -92,7 +116,7 @@ function App() {
             element={
               <LoginPage
                 onAuthSuccess={(user) => {
-                  setCurrentUser(user);
+                  updateUser(user);
                 }}
               />
             }
@@ -102,7 +126,7 @@ function App() {
             element={
               <RegisterPage
                 onAuthSuccess={(user) => {
-                  setCurrentUser(user);
+                  updateUser(user);
                 }}
               />
             }
@@ -111,7 +135,7 @@ function App() {
             path="/profile"
             element={
               <ProtectedRoute>
-                <ProfilePage currentUser={currentUser} onLogout={handleLogout} />
+                <ProfilePage currentUser={currentUser} onLogout={logout} />
               </ProtectedRoute>
             }
           />
@@ -127,7 +151,7 @@ function App() {
         initialMode={authMode}
         onClose={handleCloseAuth}
         onAuthSuccess={(user) => {
-          setCurrentUser(user);
+          updateUser(user);
         }}
       />
     </div>

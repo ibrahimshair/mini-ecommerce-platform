@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import api from "../services/api";
+import { useAuth } from "../context/AuthContext";
 import "./LoginPage.css";
 
 function LoginPage({ onAuthSuccess }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { login, isAuthenticated } = useAuth();
 
   // If redirected from a protected route, remember where to go back
   const from = location.state?.from?.pathname || "/profile";
@@ -24,10 +25,10 @@ function LoginPage({ onAuthSuccess }) {
 
   // If already authenticated, redirect to target page
   useEffect(() => {
-    if (api.getToken()) {
+    if (isAuthenticated) {
       navigate(from, { replace: true });
     }
-  }, [navigate, from]);
+  }, [isAuthenticated, navigate, from]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -68,21 +69,21 @@ function LoginPage({ onAuthSuccess }) {
     setIsLoading(true);
 
     try {
-      const res = await api.login({
+      const res = await login({
         email: formData.email,
         password: formData.password,
       });
 
-      const loggedInUser = res.data.user;
-      setSuccessMessage(`Hoş geldiniz, ${loggedInUser.name}! Giriş başarılı.`);
+      const loggedInUser = res?.data?.user;
+      setSuccessMessage(`Hoş geldiniz, ${loggedInUser?.name || "Kullanıcı"}! Giriş başarılı.`);
 
-      if (onAuthSuccess) {
+      if (onAuthSuccess && loggedInUser) {
         onAuthSuccess(loggedInUser);
       }
 
       setTimeout(() => {
         navigate(from, { replace: true });
-      }, 1000);
+      }, 800);
     } catch (err) {
       setGeneralError(err.message || "Giriş yapılamadı. Lütfen bilgilerinizi kontrol ediniz.");
     } finally {

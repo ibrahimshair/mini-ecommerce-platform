@@ -346,7 +346,7 @@ Frontend uygulaması varsayılan olarak `http://localhost:5173` adresinde çalı
 - [x] **Gün 11 (05 Ekim):** React Router DOM çok sayfalı yönlendirme mimarisi (`/`, `/products`, `/products/:id`, `/profile`, `* 404`), korumalı rota kontrolü (`ProtectedRoute`) ve dinamik profil sayfası tamamlandı (#36).
 - [x] **Gün 12 (06 Ekim):** Kullanıcı Kayıt & Giriş UI Arayüzleri (#37).
 - [x] **Gün 13 (07 Ekim):** Kullanıcı profil bilgileri ve adres yönetimi (#38).
-- [ ] **Gün 14 (08 Ekim):** Frontend-Backend Auth entegrasyonu ve JWT interceptor (#39).
+- [x] **Gün 14 (08 Ekim):** Frontend-Backend Auth entegrasyonu ve JWT interceptor (#39).
 - [ ] **Gün 15 (09 Ekim):** Hafta 3 Sprint Review ve hata düzeltmeleri (#40).
 
 ### ⏳ Gelecek Haftaların Yol Haritası

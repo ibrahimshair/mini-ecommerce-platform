@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import api from "../services/api";
+import { useAuth } from "../context/AuthContext";
 import "./RegisterPage.css";
 
 function RegisterPage({ onAuthSuccess }) {
   const navigate = useNavigate();
+  const { register, login, isAuthenticated } = useAuth();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -24,10 +25,10 @@ function RegisterPage({ onAuthSuccess }) {
 
   // If already authenticated, redirect to profile
   useEffect(() => {
-    if (api.getToken()) {
+    if (isAuthenticated) {
       navigate("/profile", { replace: true });
     }
-  }, [navigate]);
+  }, [isAuthenticated, navigate]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -113,32 +114,32 @@ function RegisterPage({ onAuthSuccess }) {
     setIsLoading(true);
 
     try {
-      const res = await api.register({
+      const res = await register({
         name: formData.name.trim(),
         email: formData.email.trim(),
         password: formData.password,
         phone: formData.phone?.trim() || undefined,
       });
 
-      setSuccessMessage(`Tebrikler ${res.data.name}! Hesabınız oluşturuldu. Giriş sayfasına yönlendiriliyorsunuz...`);
+      setSuccessMessage(`Tebrikler ${res?.data?.name || "Kullanıcı"}! Hesabınız oluşturuldu. Yönlendiriliyorsunuz...`);
 
       // Try automatic login with same credentials
       try {
-        const loginRes = await api.login({
+        const loginRes = await login({
           email: formData.email.trim(),
           password: formData.password,
         });
-        if (onAuthSuccess) {
+        if (onAuthSuccess && loginRes?.data?.user) {
           onAuthSuccess(loginRes.data.user);
         }
         setTimeout(() => {
           navigate("/profile", { replace: true });
-        }, 1200);
+        }, 1000);
       } catch {
         // Fallback to manual login
         setTimeout(() => {
           navigate("/login", { replace: true });
-        }, 1500);
+        }, 1200);
       }
     } catch (err) {
       setGeneralError(err.message || "Kayıt işlemi başarısız. Lütfen bilgilerinizi kontrol ediniz.");

@@ -1,8 +1,12 @@
 import { useState } from "react";
 import { Link, NavLink, useNavigate, useSearchParams } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import "./Navbar.css";
 
-function Navbar({ currentUser, onOpenAuth, onLogout }) {
+function Navbar({ currentUser: propUser, onOpenAuth, onLogout: propLogout }) {
+  const { currentUser: authUser, logout: authLogout } = useAuth();
+  const currentUser = propUser !== undefined ? propUser : authUser;
+  const onLogout = propLogout || authLogout;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchParams] = useSearchParams();
   const [searchValue, setSearchValue] = useState(searchParams.get("search") || "");
