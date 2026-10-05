@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
 import "./ProfilePage.css";
 
-function ProfilePage({ currentUser, onLogout }) {
-  const [profile, setProfile] = useState(currentUser || api.getCurrentUser());
+function ProfilePage({ currentUser: propUser, onLogout: propLogout }) {
+  const { currentUser: authUser, logout: authLogout, updateUser } = useAuth();
+  const [profile, setProfile] = useState(authUser || propUser || api.getCurrentUser());
   const [activeTab, setActiveTab] = useState("info");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -84,10 +86,10 @@ function ProfilePage({ currentUser, onLogout }) {
   }, [profile?.id]);
 
   const handleLogoutClick = () => {
-    if (onLogout) {
-      onLogout();
+    if (propLogout) {
+      propLogout();
     } else {
-      api.logout();
+      authLogout();
     }
     navigate("/");
   };
@@ -117,6 +119,9 @@ function ProfilePage({ currentUser, onLogout }) {
       };
 
       setProfile(updated);
+      if (updateUser) {
+        updateUser(updated);
+      }
       setProfileSuccess("Profil bilgileriniz başarıyla güncellendi.");
       setIsEditingProfile(false);
     } catch (err) {
