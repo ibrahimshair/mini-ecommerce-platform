@@ -101,7 +101,44 @@ const authorizeRoles = (...allowedRoles) => {
   };
 };
 
+/**
+ * Optional Authentication Middleware
+ * Validates token if present; otherwise permits guest request.
+ */
+const authenticateOptional = async (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      const token = authHeader.split(" ")[1];
+      if (token) {
+        try {
+          const decoded = jwt.verify(token, config.jwt.secret);
+          req.user = {
+            id: decoded.id,
+            email: decoded.email,
+            role: decoded.role,
+          };
+          try {
+            const dbUser = await User.findById(decoded.id);
+            if (dbUser) {
+              req.user = {
+                ...req.user,
+                name: dbUser.name,
+                phone: dbUser.phone,
+              };
+            }
+          } catch {}
+        } catch {}
+      }
+    }
+    next();
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   authenticate,
   authorizeRoles,
+  authenticateOptional,
 };

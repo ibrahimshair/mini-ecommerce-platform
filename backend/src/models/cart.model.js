@@ -66,6 +66,27 @@ const Cart = {
     const res = await query(text, [itemId, cartId]);
     return res.rows[0];
   },
+
+  async clearCart(cartId) {
+    const text = `
+      DELETE FROM cart_items
+      WHERE cart_id = $1
+      RETURNING *;
+    `;
+    const res = await query(text, [cartId]);
+    return res.rows;
+  },
+
+  async getItemById(cartId, itemId) {
+    const text = `
+      SELECT ci.*, p.price, p.stock, p.name
+      FROM cart_items ci
+      JOIN products p ON ci.product_id = p.id
+      WHERE ci.id = $1 AND ci.cart_id = $2;
+    `;
+    const res = await query(text, [itemId, cartId]);
+    return res.rows[0] || null;
+  },
 };
 
 module.exports = Cart;
