@@ -719,7 +719,7 @@ endpointleri kontrol edilecektir.
 * [ ] Login çalışıyor
 * [ ] JWT doğrulaması çalışıyor
 * [ ] Product CRUD çalışıyor
-* [ ] Cart işlemleri çalışıyor
+* [x] Cart işlemleri çalışıyor
 * [ ] Order oluşturuluyor
 * [ ] Admin yetkilendirmesi çalışıyor
 

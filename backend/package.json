@@ -10,7 +10,8 @@
     "test:db": "node src/scripts/testDbIntegration.js",
     "test:auth": "node src/scripts/testMilestone3Auth.js",
     "test:products": "node src/scripts/testMilestone4Products.js",
-    "test": "npm run test:auth && npm run test:products"
+    "test:cart": "node src/scripts/testMilestone4Cart.js",
+    "test": "npm run test:auth && npm run test:products && npm run test:cart"
   },
   "keywords": [],
   "author": "",

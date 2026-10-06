@@ -312,6 +312,27 @@ class ApiService {
     return response;
   }
 
+  // Shopping Cart Endpoints
+  async getCart() {
+    return this.get("/cart");
+  }
+
+  async addToCart(productId, quantity = 1) {
+    return this.post("/cart/items", { productId, quantity });
+  }
+
+  async updateCartItem(itemId, quantity) {
+    return this.put(`/cart/items/${itemId}`, { quantity });
+  }
+
+  async removeCartItem(itemId) {
+    return this.delete(`/cart/items/${itemId}`);
+  }
+
+  async clearCart() {
+    return this.delete("/cart");
+  }
+
   // Address Management Helpers (Persisted in localStorage per user)
   getAddresses(userId = "default") {
     try {
