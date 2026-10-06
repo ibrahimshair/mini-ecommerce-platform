@@ -264,6 +264,25 @@ class ApiService {
     return this.get(`/categories/${slug}/products`);
   }
 
+  async createProduct(productData) {
+    return this.post("/products", productData);
+  }
+
+  async updateProduct(id, productData) {
+    return this.put(`/products/${id}`, productData);
+  }
+
+  async deleteProduct(id) {
+    return this.delete(`/products/${id}`);
+  }
+
+  async updateProductStock(id, { delta, stock }) {
+    return this.request(`/products/${id}/stock`, {
+      method: "PATCH",
+      body: JSON.stringify({ delta, stock }),
+    });
+  }
+
   // Authentication Endpoints
   async register(userData) {
     const response = await this.post("/auth/register", userData);

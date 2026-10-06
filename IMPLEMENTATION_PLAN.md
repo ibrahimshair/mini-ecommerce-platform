@@ -843,8 +843,8 @@ Her önemli görev tamamlandıktan sonra commit oluşturulacak ve GitHub'a push 
 * [x] G12 — Login/Register UI
 * [x] G13 — Profile
 * [x] G14 — Auth entegrasyonu
-* [ ] G15 — Categories
-* [ ] G16 — Products
+* [x] G15 — Categories
+* [x] G16 — Products
 * [ ] G17 — Product detail
 * [ ] G18 — Search/filter
 * [ ] G19 — Admin products

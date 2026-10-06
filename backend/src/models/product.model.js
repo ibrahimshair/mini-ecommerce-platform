@@ -158,6 +158,89 @@ const Product = {
     ]);
     return res.rows[0];
   },
+
+  /**
+   * Updates an existing product.
+   */
+  async update(id, fields = {}) {
+    const setClauses = [];
+    const values = [id];
+    let index = 2;
+
+    const mapping = {
+      name: "name",
+      slug: "slug",
+      description: "description",
+      price: "price",
+      oldPrice: "old_price",
+      stock: "stock",
+      categoryId: "category_id",
+      imageUrl: "image_url",
+      isFeatured: "is_featured",
+      isActive: "is_active",
+    };
+
+    Object.entries(fields).forEach(([key, val]) => {
+      const col = mapping[key];
+      if (col && val !== undefined) {
+        setClauses.push(`${col} = $${index}`);
+        values.push(val);
+        index++;
+      }
+    });
+
+    if (setClauses.length === 0) {
+      return this.findById(id);
+    }
+
+    setClauses.push("updated_at = NOW()");
+
+    const text = `
+      UPDATE products
+      SET ${setClauses.join(", ")}
+      WHERE id = $1
+      RETURNING *;
+    `;
+    const res = await query(text, values);
+    return res.rows[0] || null;
+  },
+
+  /**
+   * Soft deletes a product by setting is_active = false.
+   */
+  async delete(id) {
+    const text = `
+      UPDATE products
+      SET is_active = false, updated_at = NOW()
+      WHERE id = $1
+      RETURNING id, name, is_active AS "isActive";
+    `;
+    const res = await query(text, [id]);
+    return res.rows[0] || null;
+  },
+
+  /**
+   * Updates product stock with atomic delta (+/-).
+   */
+  async updateStock(id, delta) {
+    const text = `
+      UPDATE products
+      SET stock = GREATEST(0, stock + $2), updated_at = NOW()
+      WHERE id = $1
+      RETURNING id, name, stock;
+    `;
+    const res = await query(text, [id, delta]);
+    return res.rows[0] || null;
+  },
+
+  /**
+   * Returns total count of active products.
+   */
+  async count() {
+    const text = `SELECT COUNT(*) AS total FROM products WHERE is_active = true;`;
+    const res = await query(text);
+    return parseInt(res.rows[0]?.total || 0, 10);
+  },
 };
 
 module.exports = Product;
