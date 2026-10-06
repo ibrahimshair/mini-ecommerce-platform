@@ -100,8 +100,97 @@ const validateLogin = (req, res, next) => {
   next();
 };
 
+/**
+ * Validation middleware for Product Creation
+ */
+const validateCreateProduct = (req, res, next) => {
+  const { name, price, stock, description } = req.body || {};
+  const errors = [];
+
+  if (!name || typeof name !== "string" || name.trim().length < 2) {
+    errors.push({
+      field: "name",
+      message: "Ürün adı en az 2 karakter olmalıdır.",
+    });
+  }
+
+  if (price === undefined || price === null || isNaN(Number(price)) || Number(price) <= 0) {
+    errors.push({
+      field: "price",
+      message: "Ürün fiyatı sıfırdan büyük bir sayı olmalıdır.",
+    });
+  }
+
+  if (stock !== undefined && (isNaN(Number(stock)) || Number(stock) < 0)) {
+    errors.push({
+      field: "stock",
+      message: "Stok miktarı sıfır veya daha büyük bir sayı olmalıdır.",
+    });
+  }
+
+  if (errors.length > 0) {
+    return errorResponse(res, {
+      statusCode: 400,
+      message: "Ürün bilgileri doğrulanamadı.",
+      errors,
+    });
+  }
+
+  req.body.name = name.trim();
+  req.body.price = Number(price);
+  if (stock !== undefined) req.body.stock = Number(stock);
+  if (description) req.body.description = String(description).trim();
+
+  next();
+};
+
+/**
+ * Validation middleware for Product Updates
+ */
+const validateUpdateProduct = (req, res, next) => {
+  const { name, price, stock } = req.body || {};
+  const errors = [];
+
+  if (name !== undefined && (typeof name !== "string" || name.trim().length < 2)) {
+    errors.push({
+      field: "name",
+      message: "Ürün adı en az 2 karakter olmalıdır.",
+    });
+  }
+
+  if (price !== undefined && (isNaN(Number(price)) || Number(price) <= 0)) {
+    errors.push({
+      field: "price",
+      message: "Ürün fiyatı sıfırdan büyük bir sayı olmalıdır.",
+    });
+  }
+
+  if (stock !== undefined && (isNaN(Number(stock)) || Number(stock) < 0)) {
+    errors.push({
+      field: "stock",
+      message: "Stok miktarı sıfır veya daha büyük bir sayı olmalıdır.",
+    });
+  }
+
+  if (errors.length > 0) {
+    return errorResponse(res, {
+      statusCode: 400,
+      message: "Ürün güncelleme bilgileri doğrulanamadı.",
+      errors,
+    });
+  }
+
+  if (name) req.body.name = name.trim();
+  if (price !== undefined) req.body.price = Number(price);
+  if (stock !== undefined) req.body.stock = Number(stock);
+
+  next();
+};
+
 module.exports = {
   validateRegister,
   validateLogin,
+  validateCreateProduct,
+  validateUpdateProduct,
 };
 
