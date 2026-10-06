@@ -845,7 +845,7 @@ Her önemli görev tamamlandıktan sonra commit oluşturulacak ve GitHub'a push 
 * [x] G14 — Auth entegrasyonu
 * [x] G15 — Categories
 * [x] G16 — Products
-* [ ] G17 — Product detail
+* [x] G17 — Product detail
 * [ ] G18 — Search/filter
 * [ ] G19 — Admin products
 * [ ] G20 — Admin categories
