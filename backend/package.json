@@ -9,7 +9,8 @@
     "migrate": "node src/scripts/runMigrations.js",
     "test:db": "node src/scripts/testDbIntegration.js",
     "test:auth": "node src/scripts/testMilestone3Auth.js",
-    "test": "npm run test:auth"
+    "test:products": "node src/scripts/testMilestone4Products.js",
+    "test": "npm run test:auth && npm run test:products"
   },
   "keywords": [],
   "author": "",
