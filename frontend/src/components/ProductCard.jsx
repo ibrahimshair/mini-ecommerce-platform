@@ -1,6 +1,8 @@
+import { useCart } from "../context/CartContext";
 import "./ProductCard.css";
 
 function ProductCard({ product, onViewDetail, onAddToCart }) {
+  const { addToCart } = useCart();
   const {
     id,
     name,
@@ -25,7 +27,7 @@ function ProductCard({ product, onViewDetail, onAddToCart }) {
     if (onAddToCart) {
       onAddToCart(product, 1);
     } else {
-      alert(`"${name}" sepete eklendi!`);
+      addToCart(product, 1);
     }
   };
 

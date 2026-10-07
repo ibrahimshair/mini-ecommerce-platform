@@ -11,7 +11,8 @@
     "test:auth": "node src/scripts/testMilestone3Auth.js",
     "test:products": "node src/scripts/testMilestone4Products.js",
     "test:cart": "node src/scripts/testMilestone4Cart.js",
-    "test": "npm run test:auth && npm run test:products && npm run test:cart"
+    "test:cart:ui": "node src/scripts/testMilestone4CartFrontend.js",
+    "test": "npm run test:auth && npm run test:products && npm run test:cart && npm run test:cart:ui"
   },
   "keywords": [],
   "author": "",

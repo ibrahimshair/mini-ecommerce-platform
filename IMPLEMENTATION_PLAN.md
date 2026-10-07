@@ -849,9 +849,9 @@ Her önemli görev tamamlandıktan sonra commit oluşturulacak ve GitHub'a push 
 * [ ] G18 — Search/filter
 * [ ] G19 — Admin products
 * [ ] G20 — Admin categories
-* [ ] G21 — Cart backend
-* [ ] G22 — Cart frontend
-* [ ] G23 — Cart calculation
+* [x] G21 — Cart backend
+* [x] G22 — Cart frontend
+* [x] G23 — Cart calculation
 * [ ] G24 — Integration
 * [ ] G25 — Order creation
 * [ ] G26 — Order history

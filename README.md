@@ -353,7 +353,7 @@ Frontend uygulaması varsayılan olarak `http://localhost:5173` adresinde çalı
 - [x] **Gün 16 (12 Ekim):** Ürün Yönetimi & Backend REST API Geliştirmeleri (#41).
 - [x] **Gün 17 (13 Ekim):** Ürün Detay, Canlı Stok Kontrolü & Frontend Entegrasyonu (#42).
 - [x] **Gün 18 (14 Ekim):** Alışveriş Sepeti Backend Mimarisi & REST API Altyapısı (#43).
-- [ ] **Gün 19 (15 Ekim):** Alışveriş Sepeti Frontend UI, Dinamik Sepet Yönetimi & Tutar Hesaplama (#44).
+- [x] **Gün 19 (15 Ekim):** Alışveriş Sepeti Frontend UI, Dinamik Sepet Yönetimi & Tutar Hesaplama (`CartContext`, `CartPage`, sepet tutar/kupon hesaplamaları, toast bildirimleri ve Navbar entegrasyonu tamamlandı) (#44).
 - [ ] **Gün 20 (16 Ekim):** Hafta 4 Sprint Review & Sepet-Stok Entegrasyonu (#45).
 
 ### ⏳ Gelecek Haftaların Yol Haritası

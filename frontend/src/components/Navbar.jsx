@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { Link, NavLink, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useCart } from "../context/CartContext";
 import "./Navbar.css";
 
 function Navbar({ currentUser: propUser, onOpenAuth, onLogout: propLogout }) {
   const { currentUser: authUser, logout: authLogout } = useAuth();
+  const { itemCount } = useCart();
   const currentUser = propUser !== undefined ? propUser : authUser;
   const onLogout = propLogout || authLogout;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -108,12 +110,13 @@ function Navbar({ currentUser: propUser, onOpenAuth, onLogout: propLogout }) {
 
         {/* Right Actions (Cart & Auth) */}
         <div className="header-actions">
-          {/* Cart Icon with Badge */}
-          <button
-            type="button"
+          {/* Cart Icon with Dynamic Badge */}
+          <Link
+            to="/cart"
             className="action-cart"
             title="Sepetim"
-            onClick={() => alert("Sepet özelliği Milestone 4'te aktif olacaktır.")}
+            aria-label={`Sepetim (${itemCount} ürün)`}
+            onClick={() => setIsMobileMenuOpen(false)}
           >
             <svg
               className="action-icon"
@@ -128,8 +131,8 @@ function Navbar({ currentUser: propUser, onOpenAuth, onLogout: propLogout }) {
               <circle cx="19" cy="21" r="1" />
               <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
             </svg>
-            <span className="cart-badge">2</span>
-          </button>
+            {itemCount > 0 && <span className="cart-badge">{itemCount}</span>}
+          </Link>
 
           {/* User Auth Buttons / User Profile */}
           <div className="auth-buttons">

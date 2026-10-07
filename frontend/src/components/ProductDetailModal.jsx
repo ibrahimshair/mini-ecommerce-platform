@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { formatCurrency } from "../utils/formatters";
+import { useCart } from "../context/CartContext";
 import "./ProductDetailModal.css";
 
 function ProductDetailModal({ product, onClose, onAddToCart }) {
+  const { addToCart } = useCart();
   const [quantity, setQuantity] = useState(1);
 
   // Close modal on Escape key press
@@ -44,7 +46,7 @@ function ProductDetailModal({ product, onClose, onAddToCart }) {
     if (onAddToCart) {
       onAddToCart(product, quantity);
     } else {
-      alert(`${quantity} adet "${name}" sepete eklendi!`);
+      addToCart(product, quantity);
     }
     onClose();
   };
