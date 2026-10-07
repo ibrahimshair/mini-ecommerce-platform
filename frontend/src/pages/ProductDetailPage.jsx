@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import api from "../services/api";
+import { useCart } from "../context/CartContext";
 import "./ProductDetailPage.css";
 
 function ProductDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { addToCart } = useCart();
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -70,12 +72,15 @@ function ProductDetailPage() {
     };
   }, [id]);
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (!product || product.stock <= 0) return;
-    setAddedSuccess(true);
-    setTimeout(() => {
-      setAddedSuccess(false);
-    }, 2500);
+    const success = await addToCart(product, quantity);
+    if (success) {
+      setAddedSuccess(true);
+      setTimeout(() => {
+        setAddedSuccess(false);
+      }, 2500);
+    }
   };
 
   const handleShare = () => {

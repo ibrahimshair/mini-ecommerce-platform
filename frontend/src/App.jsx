@@ -7,9 +7,11 @@ import ProductDetailPage from "./pages/ProductDetailPage";
 import ProfilePage from "./pages/ProfilePage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
+import CartPage from "./pages/CartPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import Footer from "./components/Footer";
 import AuthModal from "./components/AuthModal";
+import CartToast from "./components/CartToast";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { useAuth } from "./context/AuthContext";
 
@@ -139,11 +141,15 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/cart" element={<CartPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </main>
 
       <Footer />
+
+      {/* Global Shopping Cart Toast Notification */}
+      <CartToast />
 
       {/* Authentication Modal */}
       <AuthModal

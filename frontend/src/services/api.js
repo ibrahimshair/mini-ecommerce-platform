@@ -6,6 +6,7 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 const TOKEN_KEY = "mini_ecommerce_token";
 const USER_KEY = "mini_ecommerce_user";
+const SESSION_KEY = "mini_ecommerce_session_id";
 
 class ApiService {
   constructor(baseUrl) {
@@ -14,7 +15,7 @@ class ApiService {
     this.responseInterceptors = [];
     this.unauthorizedHandlers = new Set();
 
-    // Register default built-in JWT Authorization request interceptor
+    // Register default built-in JWT Authorization and Guest Session request interceptor
     this.addRequestInterceptor(async (config) => {
       const token = this.getToken();
       if (token) {
@@ -23,6 +24,16 @@ class ApiService {
           Authorization: `Bearer ${token}`,
         };
       }
+
+      // Provide guest session identifier so non-authenticated carts persist across requests
+      const sessionId = this.getSessionId();
+      if (sessionId) {
+        config.headers = {
+          ...config.headers,
+          "x-session-id": sessionId,
+        };
+      }
+
       return config;
     });
 
@@ -88,6 +99,19 @@ class ApiService {
       return localStorage.getItem(TOKEN_KEY);
     } catch {
       return null;
+    }
+  }
+
+  getSessionId() {
+    try {
+      let sid = localStorage.getItem(SESSION_KEY);
+      if (!sid) {
+        sid = "guest_" + Math.random().toString(36).substring(2, 9) + "_" + Date.now();
+        localStorage.setItem(SESSION_KEY, sid);
+      }
+      return sid;
+    } catch {
+      return "guest_default";
     }
   }
 

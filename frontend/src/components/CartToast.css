@@ -1,0 +1,129 @@
+/* Cart Floating Toast Notification */
+.cart-toast {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.875rem 1.25rem;
+  border-radius: var(--radius-md);
+  background: #ffffff;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--border-color);
+  max-width: 420px;
+  min-width: 300px;
+  animation: slideInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  backdrop-filter: blur(8px);
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.cart-toast-success {
+  border-left: 4px solid var(--success);
+}
+
+.cart-toast-error {
+  border-left: 4px solid var(--danger);
+}
+
+.cart-toast-info {
+  border-left: 4px solid var(--primary);
+}
+
+.toast-icon-wrap {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.cart-toast-success .toast-icon-wrap {
+  color: var(--success);
+  background: rgba(16, 185, 129, 0.12);
+}
+
+.cart-toast-error .toast-icon-wrap {
+  color: var(--danger);
+  background: rgba(239, 68, 68, 0.12);
+}
+
+.cart-toast-info .toast-icon-wrap {
+  color: var(--primary);
+  background: var(--primary-light);
+}
+
+.toast-icon-wrap svg {
+  width: 18px;
+  height: 18px;
+}
+
+.toast-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.toast-message {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.35;
+  margin: 0;
+}
+
+.toast-action-link {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--primary);
+  text-decoration: none;
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.toast-action-link:hover {
+  color: var(--primary-dark);
+  text-decoration: underline;
+}
+
+.toast-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: var(--transition);
+}
+
+.toast-close-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-subtle);
+}
+
+@media (max-width: 640px) {
+  .cart-toast {
+    left: 1rem;
+    right: 1rem;
+    bottom: 1rem;
+    max-width: unset;
+  }
+}
