@@ -7,7 +7,7 @@ import "./ProductDetailPage.css";
 function ProductDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { addToCart } = useCart();
+  const { addToCart, getItemQuantityInCart, getRemainingStock } = useCart();
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -278,6 +278,21 @@ function ProductDetailPage() {
               {product.description?.slice(0, 160)}...
             </p>
 
+            {/* In-Cart Live Stock Feedback Banner */}
+            {inCartQty > 0 && !isOutOfStock && (
+              <div className="detail-in-cart-banner">
+                <span className="banner-icon">🛒</span>
+                <span className="banner-text">
+                  Sepetinizde bu üründen <strong>{inCartQty} adet</strong> bulunuyor.
+                  {remainingStock > 0 ? (
+                    <span className="banner-sub"> (En fazla {remainingStock} adet daha ekleyebilirsiniz)</span>
+                  ) : (
+                    <span className="banner-maxed"> (Maksimum stok adedine ulaştınız)</span>
+                  )}
+                </span>
+              </div>
+            )}
+
             {/* Purchasing Action Area */}
             {!isOutOfStock ? (
               <div className="detail-actions">
@@ -286,7 +301,7 @@ function ProductDetailPage() {
                     type="button"
                     className="qty-btn"
                     onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                    disabled={quantity <= 1}
+                    disabled={quantity <= 1 || isMaxInCart}
                   >
                     -
                   </button>
@@ -294,8 +309,8 @@ function ProductDetailPage() {
                   <button
                     type="button"
                     className="qty-btn"
-                    onClick={() => setQuantity((q) => Math.min(product.stock, q + 1))}
-                    disabled={quantity >= product.stock}
+                    onClick={() => setQuantity((q) => Math.min(remainingStock, q + 1))}
+                    disabled={quantity >= remainingStock || isMaxInCart}
                   >
                     +
                   </button>
@@ -305,9 +320,12 @@ function ProductDetailPage() {
                   type="button"
                   className={`btn btn-primary btn-add-cart ${addedSuccess ? "btn-success" : ""}`}
                   onClick={handleAddToCart}
+                  disabled={isMaxInCart}
                 >
                   {addedSuccess ? (
                     <>✓ Sepete Eklendi!</>
+                  ) : isMaxInCart ? (
+                    <>Maksimum Stok Sepette</>
                   ) : (
                     <>
                       <svg

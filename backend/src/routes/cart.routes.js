@@ -39,4 +39,11 @@ router.delete("/items/:id", authenticateOptional, CartController.removeItem);
  */
 router.delete("/", authenticateOptional, CartController.clearCart);
 
+/**
+ * @route   POST /api/cart/validate
+ * @desc    Validate cart against live product stock and return warnings
+ * @access  Public / Optional Auth
+ */
+router.post("/validate", authenticateOptional, CartController.validateStock);
+
 module.exports = router;

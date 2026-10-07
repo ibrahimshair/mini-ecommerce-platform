@@ -2,7 +2,7 @@ import { useCart } from "../context/CartContext";
 import "./ProductCard.css";
 
 function ProductCard({ product, onViewDetail, onAddToCart }) {
-  const { addToCart } = useCart();
+  const { addToCart, getItemQuantityInCart, getRemainingStock } = useCart();
   const {
     id,
     name,
@@ -16,6 +16,10 @@ function ProductCard({ product, onViewDetail, onAddToCart }) {
     stock = 15,
   } = product;
 
+  const inCartQty = getItemQuantityInCart(id);
+  const remainingStock = getRemainingStock(id, stock);
+  const isMaxInCart = inCartQty >= stock && stock > 0;
+
   const handleCardClick = () => {
     if (onViewDetail) {
       onViewDetail(product);
@@ -24,6 +28,7 @@ function ProductCard({ product, onViewDetail, onAddToCart }) {
 
   const handleAddToCartClick = (e) => {
     e.stopPropagation();
+    if (isMaxInCart) return;
     if (onAddToCart) {
       onAddToCart(product, 1);
     } else {
@@ -40,6 +45,11 @@ function ProductCard({ product, onViewDetail, onAddToCart }) {
         {discount && <span className="product-discount-badge">%{discount}</span>}
         {isLowStock && <span className="product-stock-pill low-stock">Son {stock} Ürün</span>}
         {isOutOfStock && <span className="product-stock-pill out-of-stock">Tükendi</span>}
+        {inCartQty > 0 && !isOutOfStock && (
+          <span className="product-in-cart-pill">
+            Sepette ({inCartQty})
+          </span>
+        )}
 
         <img src={image} alt={name} className="product-image" loading="lazy" />
 
@@ -115,10 +125,18 @@ function ProductCard({ product, onViewDetail, onAddToCart }) {
 
           <button
             type="button"
-            className="btn-add-cart"
-            title="Sepete Ekle"
+            className={`btn-add-cart ${inCartQty > 0 ? "has-in-cart" : ""}`}
+            title={
+              isOutOfStock
+                ? "Tükendi"
+                : isMaxInCart
+                ? `Maksimum stok adedine (${stock}) ulaşıldı`
+                : inCartQty > 0
+                ? `Sepete 1 adet daha ekle (Mevcut: ${inCartQty})`
+                : "Sepete Ekle"
+            }
             aria-label="Sepete Ekle"
-            disabled={isOutOfStock}
+            disabled={isOutOfStock || isMaxInCart}
             onClick={handleAddToCartClick}
           >
             <svg
@@ -132,7 +150,15 @@ function ProductCard({ product, onViewDetail, onAddToCart }) {
               <path d="M5 12h14" />
               <path d="M12 5v14" />
             </svg>
-            <span>{isOutOfStock ? "Tükendi" : "Ekle"}</span>
+            <span>
+              {isOutOfStock
+                ? "Tükendi"
+                : isMaxInCart
+                ? "Maks."
+                : inCartQty > 0
+                ? `+1 (${inCartQty})`
+                : "Ekle"}
+            </span>
           </button>
         </div>
       </div>

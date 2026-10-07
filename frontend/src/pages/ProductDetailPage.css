@@ -307,6 +307,32 @@
   margin-bottom: 1.75rem;
 }
 
+.detail-in-cart-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  background: var(--primary-light);
+  border: 1px solid rgba(79, 70, 229, 0.2);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.25rem;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+}
+
+.detail-in-cart-banner .banner-icon {
+  font-size: 1.15rem;
+}
+
+.detail-in-cart-banner .banner-sub {
+  color: var(--text-secondary);
+}
+
+.detail-in-cart-banner .banner-maxed {
+  color: var(--danger);
+  font-weight: 700;
+}
+
 /* Actions */
 .detail-actions {
   display: flex;

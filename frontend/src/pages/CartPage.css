@@ -67,6 +67,55 @@
   border-radius: var(--radius-full);
 }
 
+.cart-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.btn-validate-stock {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  color: var(--primary);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  padding: 0.45rem 0.85rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-validate-stock svg {
+  width: 15px;
+  height: 15px;
+}
+
+.btn-validate-stock:hover:not(:disabled) {
+  background: var(--primary-light);
+  border-color: var(--primary);
+}
+
+.btn-validate-stock:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spin-icon {
+  animation: spin 1s linear infinite;
+}
+
 .btn-clear-cart {
   display: inline-flex;
   align-items: center;
@@ -96,6 +145,44 @@
 .btn-clear-cart:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* Live Stock Warnings Alert Card */
+.cart-stock-warnings-card {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: var(--radius-md);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stock-warning-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9375rem;
+  color: #92400e;
+  margin-bottom: 0.4rem;
+}
+
+.stock-warning-list {
+  margin: 0;
+  padding-left: 1.5rem;
+  color: #78350f;
+  font-size: 0.84rem;
+  line-height: 1.5;
 }
 
 /* Empty Cart View */
@@ -407,6 +494,26 @@
   font-weight: 700;
   color: #b45309;
   background: #fef3c7;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-full);
+}
+
+.stock-danger-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #b91c1c;
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-full);
+}
+
+.stock-adjusted-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #0369a1;
+  background: #e0f2fe;
+  border: 1px solid #bae6fd;
   padding: 0.15rem 0.5rem;
   border-radius: var(--radius-full);
 }
@@ -740,6 +847,19 @@
   color: var(--text-muted);
   text-align: center;
   margin-bottom: 1.25rem;
+}
+
+.cart-out-of-stock-checkout-warning {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  padding: 0.65rem 0.85rem;
+  border-radius: var(--radius-sm);
+  line-height: 1.45;
+  margin-bottom: 1.25rem;
+  text-align: center;
 }
 
 /* Trust Badges */

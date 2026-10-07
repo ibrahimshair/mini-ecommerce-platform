@@ -74,6 +74,31 @@
   border: 1px solid #fca5a5;
 }
 
+.product-in-cart-pill {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--primary);
+  color: #ffffff;
+  box-shadow: 0 2px 4px rgba(79, 70, 229, 0.25);
+  z-index: 2;
+}
+
+.btn-add-cart.has-in-cart {
+  background-color: var(--primary-light);
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+.btn-add-cart.has-in-cart:hover {
+  background-color: var(--primary);
+  color: #ffffff;
+}
+
 .product-image-overlay {
   position: absolute;
   top: 0;
