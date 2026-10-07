@@ -357,6 +357,10 @@ class ApiService {
     return this.delete("/cart");
   }
 
+  async validateCart() {
+    return this.post("/cart/validate", {});
+  }
+
   // Address Management Helpers (Persisted in localStorage per user)
   getAddresses(userId = "default") {
     try {

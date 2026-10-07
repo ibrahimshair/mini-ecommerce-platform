@@ -413,6 +413,125 @@ const CartController = {
       next(error);
     }
   },
+
+  /**
+   * POST /api/cart/validate
+   * Validates cart items against live stock levels, adjusts quantities if exceeded,
+   * detects out-of-stock items, and returns warnings and updated totals.
+   */
+  async validateStock(req, res, next) {
+    try {
+      const cartKey = CartController.getCartKey(req);
+      const userId = req.user?.id;
+      let items = [];
+
+      if (userId) {
+        try {
+          const cart = await Cart.getOrCreateCart(userId);
+          if (cart?.id) {
+            const dbItems = await Cart.getCartItems(cart.id);
+            if (Array.isArray(dbItems)) {
+              items = dbItems.map((item) => ({
+                id: item.id,
+                productId: item.productId,
+                name: item.name,
+                price: Number(item.price),
+                image: item.image,
+                imageUrl: item.image,
+                stock: Number(item.stock),
+                quantity: Number(item.quantity),
+                total: Math.round(Number(item.price) * Number(item.quantity) * 100) / 100,
+              }));
+            }
+          }
+        } catch (dbErr) {
+          items = FALLBACK_CARTS.get(cartKey) || [];
+        }
+      } else {
+        items = FALLBACK_CARTS.get(cartKey) || [];
+      }
+
+      const warnings = [];
+      let isModified = false;
+      const verifiedItems = [];
+
+      for (const item of items) {
+        const product = await resolveProduct(item.productId);
+        const liveStock = product ? Number(product.stock) : 0;
+
+        if (!product || liveStock <= 0) {
+          warnings.push({
+            productId: item.productId,
+            name: item.name,
+            type: "out_of_stock",
+            message: `"${item.name}" stoklarımızda tükendi.`,
+          });
+          verifiedItems.push({
+            ...item,
+            stock: 0,
+            isOutOfStock: true,
+          });
+        } else if (item.quantity > liveStock) {
+          warnings.push({
+            productId: item.productId,
+            name: item.name,
+            type: "quantity_adjusted",
+            previousQuantity: item.quantity,
+            newQuantity: liveStock,
+            message: `"${item.name}" için mevcut stok (${liveStock} adet) talep edilen miktarın altında kaldığı için sepet adedi güncellendi.`,
+          });
+          isModified = true;
+          item.quantity = liveStock;
+          item.stock = liveStock;
+          item.total = Math.round(Number(item.price) * liveStock * 100) / 100;
+
+          if (userId) {
+            try {
+              const cart = await Cart.getOrCreateCart(userId);
+              if (cart?.id) {
+                await Cart.updateItemQuantity(cart.id, item.id, liveStock);
+              }
+            } catch (err) {}
+          }
+
+          verifiedItems.push({
+            ...item,
+            isAdjusted: true,
+            isOutOfStock: false,
+          });
+        } else {
+          verifiedItems.push({
+            ...item,
+            stock: liveStock,
+            isOutOfStock: false,
+          });
+        }
+      }
+
+      if (isModified && !userId) {
+        FALLBACK_CARTS.set(cartKey, verifiedItems);
+      }
+
+      const summary = calculateCartTotals(verifiedItems);
+
+      return successResponse(res, {
+        statusCode: 200,
+        message:
+          warnings.length > 0
+            ? "Sepet stok kontrolü tamamlandı, bazı stok uyarıları mevcut."
+            : "Tüm sepet ürünleri için güncel stok doğrulandı.",
+        data: {
+          items: verifiedItems,
+          summary,
+          warnings,
+          isValid: warnings.length === 0,
+          isModified,
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
 };
 
 module.exports = CartController;

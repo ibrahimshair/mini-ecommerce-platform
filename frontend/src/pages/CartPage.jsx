@@ -56,12 +56,14 @@ function CartPage() {
     itemCount,
     actionLoading,
     activeCoupon,
+    stockWarnings,
     updateQuantity,
     removeFromCart,
     clearCart,
     applyCoupon,
     removeCoupon,
     addToCart,
+    validateLiveStock,
   } = useCart();
 
   const { currentUser } = useAuth();
@@ -71,6 +73,17 @@ function CartPage() {
   const [couponError, setCouponError] = useState("");
   const [isClearModalOpen, setIsClearModalOpen] = useState(false);
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
+
+  // Validate live stock on page mount
+  useEffect(() => {
+    if (items.length > 0) {
+      validateLiveStock();
+    }
+  }, []);
+
+  const hasOutOfStockItems = useMemo(() => {
+    return items.some((item) => item.isOutOfStock || (item.stock !== undefined && item.stock <= 0));
+  }, [items]);
 
   // Free shipping progress percentage (capped at 100%)
   const freeShippingProgress = useMemo(() => {
@@ -95,6 +108,9 @@ function CartPage() {
   };
 
   const handleStartCheckout = () => {
+    if (hasOutOfStockItems) {
+      return;
+    }
     if (!currentUser) {
       navigate("/login?redirect=/cart");
       return;
@@ -120,20 +136,59 @@ function CartPage() {
           </div>
 
           {items.length > 0 && (
-            <button
-              type="button"
-              className="btn-clear-cart"
-              onClick={() => setIsClearModalOpen(true)}
-              disabled={actionLoading === "clear"}
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="3 6 5 6 21 6" />
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-              </svg>
-              Sepeti Temizle
-            </button>
+            <div className="cart-header-actions">
+              <button
+                type="button"
+                className="btn-validate-stock"
+                onClick={() => validateLiveStock()}
+                disabled={actionLoading === "validate-stock"}
+                title="Güncel ürün stoklarını kontrol et"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  className={actionLoading === "validate-stock" ? "spin-icon" : ""}
+                >
+                  <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                  <path d="M3 3v5h5" />
+                  <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+                  <path d="M16 21h5v-5" />
+                </svg>
+                {actionLoading === "validate-stock" ? "Doğrulanıyor..." : "Stokları Doğrula"}
+              </button>
+
+              <button
+                type="button"
+                className="btn-clear-cart"
+                onClick={() => setIsClearModalOpen(true)}
+                disabled={actionLoading === "clear"}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                </svg>
+                Sepeti Temizle
+              </button>
+            </div>
           )}
         </div>
+
+        {/* Live Stock Alert Banner */}
+        {stockWarnings && stockWarnings.length > 0 && (
+          <div className="cart-stock-warnings-card" role="alert">
+            <div className="stock-warning-title">
+              <span>⚠️</span>
+              <strong>Canlı Stok Güncellemesi Bildirimi</strong>
+            </div>
+            <ul className="stock-warning-list">
+              {stockWarnings.map((w, idx) => (
+                <li key={idx}>{w.message}</li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         {/* Empty Cart State */}
         {items.length === 0 ? (
@@ -271,7 +326,15 @@ function CartPage() {
                         </h3>
 
                         <div className="cart-item-meta-badges">
-                          {item.stock && item.stock <= 5 ? (
+                          {item.isOutOfStock || (item.stock !== undefined && item.stock <= 0) ? (
+                            <span className="stock-danger-badge">
+                              ⚠️ Tükendi
+                            </span>
+                          ) : item.isAdjusted ? (
+                            <span className="stock-adjusted-badge">
+                              🔄 Stok Güncellendi
+                            </span>
+                          ) : item.stock && item.stock <= 5 ? (
                             <span className="stock-warning-badge">
                               🔥 Son {item.stock} Ürün!
                             </span>
@@ -291,7 +354,7 @@ function CartPage() {
                           <button
                             type="button"
                             className="cart-qty-btn"
-                            disabled={item.quantity <= 1 || isUpdating}
+                            disabled={item.quantity <= 1 || isUpdating || item.isOutOfStock}
                             onClick={() => updateQuantity(item.id, item.quantity - 1)}
                             title="Azalt"
                             aria-label="Azalt"
@@ -304,15 +367,21 @@ function CartPage() {
                           <button
                             type="button"
                             className="cart-qty-btn"
-                            disabled={isMaxStock || isUpdating}
+                            disabled={isMaxStock || isUpdating || item.isOutOfStock}
                             onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                            title={isMaxStock ? "Maksimum stok miktarına ulaşıldı" : "Artır"}
+                            title={
+                              item.isOutOfStock
+                                ? "Tükendi"
+                                : isMaxStock
+                                ? "Maksimum stok miktarına ulaşıldı"
+                                : "Artır"
+                            }
                             aria-label="Artır"
                           >
                             +
                           </button>
                         </div>
-                        {isMaxStock && (
+                        {isMaxStock && !item.isOutOfStock && (
                           <span className="max-stock-notice">Maksimum adet</span>
                         )}
                       </div>
@@ -461,6 +530,12 @@ function CartPage() {
                   type="button"
                   className="btn btn-primary btn-lg btn-checkout"
                   onClick={handleStartCheckout}
+                  disabled={hasOutOfStockItems}
+                  title={
+                    hasOutOfStockItems
+                      ? "Sepetinizde tükenmiş ürün bulunduğu için sipariş oluşturulamaz"
+                      : "Siparişi Tamamla"
+                  }
                 >
                   <span>Siparişi Tamamla</span>
                   <svg
@@ -475,11 +550,15 @@ function CartPage() {
                   </svg>
                 </button>
 
-                {!currentUser && (
+                {hasOutOfStockItems ? (
+                  <p className="cart-out-of-stock-checkout-warning">
+                    ⚠️ Sepetinizde tükenmiş ürün bulunmaktadır. Siparişi tamamlayabilmek için lütfen bu ürünleri sepetten çıkarınız.
+                  </p>
+                ) : !currentUser ? (
                   <p className="guest-checkout-notice">
                     🔒 Siparişinizi tamamlamak için giriş yapmanız istenecektir.
                   </p>
-                )}
+                ) : null}
 
                 {/* Trust Badges */}
                 <div className="summary-trust-badges">

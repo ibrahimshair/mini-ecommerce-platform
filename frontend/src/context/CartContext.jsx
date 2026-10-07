@@ -373,6 +373,62 @@ export function CartProvider({ children }) {
     showToast("Kupon kaldırıldı.", "info");
   }, [showToast]);
 
+  const [stockWarnings, setStockWarnings] = useState([]);
+
+  /**
+   * Validates cart against real-time backend stock levels and adjusts quantities if needed
+   */
+  const validateLiveStock = useCallback(async () => {
+    setActionLoading("validate-stock");
+    try {
+      const res = await api.validateCart();
+      if (res?.data) {
+        if (res.data.items) {
+          setItems(res.data.items);
+        }
+        if (res.data.warnings && res.data.warnings.length > 0) {
+          setStockWarnings(res.data.warnings);
+          showToast(
+            `Stok Uyarısı: Sepetinizdeki ürünlerin güncel stok durumu kontrol edildi.`,
+            "error"
+          );
+        } else {
+          setStockWarnings([]);
+          showToast("Tüm sepet ürünleri için güncel stoklar doğrulandı.", "success");
+        }
+        return res.data;
+      }
+    } catch (err) {
+      console.warn("[CartContext] Live stock validation error:", err?.message);
+    } finally {
+      setActionLoading(null);
+    }
+    return { isValid: true, warnings: [] };
+  }, [showToast]);
+
+  /**
+   * Helper: Get quantity of a product currently in the cart
+   */
+  const getItemQuantityInCart = useCallback(
+    (productId) => {
+      const found = items.find((i) => i.productId === productId || i.id === productId);
+      return found ? found.quantity : 0;
+    },
+    [items]
+  );
+
+  /**
+   * Helper: Calculate remaining purchasable stock considering existing cart quantity
+   */
+  const getRemainingStock = useCallback(
+    (productId, totalStock) => {
+      const inCart = getItemQuantityInCart(productId);
+      const stock = totalStock !== undefined ? totalStock : 99;
+      return Math.max(0, stock - inCart);
+    },
+    [getItemQuantityInCart]
+  );
+
   const value = useMemo(
     () => ({
       items,
@@ -382,6 +438,7 @@ export function CartProvider({ children }) {
       actionLoading,
       activeCoupon,
       toast,
+      stockWarnings,
       addToCart,
       updateQuantity,
       removeFromCart,
@@ -389,6 +446,9 @@ export function CartProvider({ children }) {
       applyCoupon,
       removeCoupon,
       refreshCart,
+      validateLiveStock,
+      getItemQuantityInCart,
+      getRemainingStock,
       showToast,
       hideToast,
     }),
@@ -399,6 +459,7 @@ export function CartProvider({ children }) {
       actionLoading,
       activeCoupon,
       toast,
+      stockWarnings,
       addToCart,
       updateQuantity,
       removeFromCart,
@@ -406,6 +467,9 @@ export function CartProvider({ children }) {
       applyCoupon,
       removeCoupon,
       refreshCart,
+      validateLiveStock,
+      getItemQuantityInCart,
+      getRemainingStock,
       showToast,
       hideToast,
     ]
