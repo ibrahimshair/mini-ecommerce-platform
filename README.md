@@ -349,12 +349,12 @@ Frontend uygulaması varsayılan olarak `http://localhost:5173` adresinde çalı
 - [x] **Gün 14 (08 Ekim):** Frontend-Backend Auth entegrasyonu ve JWT interceptor (#39).
 - [x] **Gün 15 (09 Ekim):** Hafta 3 Sprint Review, E2E auth test paketi (`npm run test:auth`) ve hata düzeltmeleri (#40).
 
-### 🚀 4. Hafta (Gün 16–20) — Milestone 4: Ürün Yönetimi & Alışveriş Sepeti (Devam Ediyor)
+### ✅ 4. Hafta (Gün 16–20) — Milestone 4: Ürün Yönetimi & Alışveriş Sepeti (%100 Tamamlandı)
 - [x] **Gün 16 (12 Ekim):** Ürün Yönetimi & Backend REST API Geliştirmeleri (#41).
 - [x] **Gün 17 (13 Ekim):** Ürün Detay, Canlı Stok Kontrolü & Frontend Entegrasyonu (#42).
 - [x] **Gün 18 (14 Ekim):** Alışveriş Sepeti Backend Mimarisi & REST API Altyapısı (#43).
 - [x] **Gün 19 (15 Ekim):** Alışveriş Sepeti Frontend UI, Dinamik Sepet Yönetimi & Tutar Hesaplama (`CartContext`, `CartPage`, sepet tutar/kupon hesaplamaları, toast bildirimleri ve Navbar entegrasyonu tamamlandı) (#44).
-- [ ] **Gün 20 (16 Ekim):** Hafta 4 Sprint Review & Sepet-Stok Entegrasyonu (#45).
+- [x] **Gün 20 (16 Ekim):** Hafta 4 Sprint Review & Sepet-Stok Entegrasyonu (Canlı stok doğrulama API'si, arayüz stok senkronizasyonu, sepet uyarı kartı ve Milestone 4 test paketi tamamlandı) (#45).
 
 ### ⏳ Gelecek Haftaların Yol Haritası
 - [ ] **5. Hafta (Gün 21–25) — Milestone 5:** Sipariş Sistemi & Yönetici (Admin) Paneli (#46–#50)
