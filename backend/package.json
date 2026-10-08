@@ -13,7 +13,8 @@
     "test:cart": "node src/scripts/testMilestone4Cart.js",
     "test:cart:ui": "node src/scripts/testMilestone4CartFrontend.js",
     "test:sprint4": "node src/scripts/testMilestone4SprintReview.js",
-    "test": "npm run test:auth && npm run test:products && npm run test:cart && npm run test:cart:ui && npm run test:sprint4"
+    "test:orders": "node src/scripts/testMilestone5Orders.js",
+    "test": "npm run test:auth && npm run test:products && npm run test:cart && npm run test:cart:ui && npm run test:sprint4 && npm run test:orders"
   },
   "keywords": [],
   "author": "",
