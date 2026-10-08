@@ -534,4 +534,8 @@ const CartController = {
   },
 };
 
+CartController.FALLBACK_CARTS = FALLBACK_CARTS;
+CartController.calculateCartTotals = calculateCartTotals;
+
 module.exports = CartController;
+

@@ -187,10 +187,57 @@ const validateUpdateProduct = (req, res, next) => {
   next();
 };
 
+/**
+ * Validation middleware for Order Creation
+ */
+const validateCreateOrder = (req, res, next) => {
+  const { shippingAddress, paymentMethod } = req.body || {};
+  const errors = [];
+
+  if (!shippingAddress) {
+    errors.push({
+      field: "shippingAddress",
+      message: "Teslimat adresi zorunludur.",
+    });
+  } else if (typeof shippingAddress === "string" && shippingAddress.trim().length < 5) {
+    errors.push({
+      field: "shippingAddress",
+      message: "Teslimat adresi en az 5 karakter uzunluğunda olmalıdır.",
+    });
+  } else if (typeof shippingAddress === "object") {
+    if (!shippingAddress.address && !shippingAddress.addressLine && !shippingAddress.title) {
+      errors.push({
+        field: "shippingAddress",
+        message: "Lütfen geçerli bir teslimat adresi belirtiniz.",
+      });
+    }
+  }
+
+  const validPaymentMethods = ["credit_card", "bank_transfer", "cash_on_delivery"];
+  if (paymentMethod && !validPaymentMethods.includes(paymentMethod)) {
+    errors.push({
+      field: "paymentMethod",
+      message: "Geçersiz ödeme yöntemi. İzin verilenler: credit_card, bank_transfer, cash_on_delivery.",
+    });
+  }
+
+  if (errors.length > 0) {
+    return errorResponse(res, {
+      statusCode: 400,
+      message: "Sipariş bilgileri doğrulanamadı.",
+      errors,
+    });
+  }
+
+  next();
+};
+
 module.exports = {
   validateRegister,
   validateLogin,
   validateCreateProduct,
   validateUpdateProduct,
+  validateCreateOrder,
 };
+
 

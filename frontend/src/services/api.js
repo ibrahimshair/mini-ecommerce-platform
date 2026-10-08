@@ -361,6 +361,23 @@ class ApiService {
     return this.post("/cart/validate", {});
   }
 
+  // Orders API Methods
+  async createOrder(orderData) {
+    return this.post("/orders", orderData);
+  }
+
+  async getOrders() {
+    return this.get("/orders");
+  }
+
+  async getOrderById(orderId) {
+    return this.get(`/orders/${orderId}`);
+  }
+
+  async cancelOrder(orderId) {
+    return this.patch(`/orders/${orderId}/cancel`, {});
+  }
+
   // Address Management Helpers (Persisted in localStorage per user)
   getAddresses(userId = "default") {
     try {
