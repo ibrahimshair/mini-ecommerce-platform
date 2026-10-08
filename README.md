@@ -356,8 +356,14 @@ Frontend uygulaması varsayılan olarak `http://localhost:5173` adresinde çalı
 - [x] **Gün 19 (15 Ekim):** Alışveriş Sepeti Frontend UI, Dinamik Sepet Yönetimi & Tutar Hesaplama (`CartContext`, `CartPage`, sepet tutar/kupon hesaplamaları, toast bildirimleri ve Navbar entegrasyonu tamamlandı) (#44).
 - [x] **Gün 20 (16 Ekim):** Hafta 4 Sprint Review & Sepet-Stok Entegrasyonu (Canlı stok doğrulama API'si, arayüz stok senkronizasyonu, sepet uyarı kartı ve Milestone 4 test paketi tamamlandı) (#45).
 
+### 🚀 5. Hafta (Gün 21–25) — Milestone 5: Sipariş Sistemi & Yönetici (Admin) Paneli (Devam Ediyor)
+- [x] **Gün 21 (19 Ekim):** Sipariş Sistemi Veritabanı Mimarisi & Backend REST API (`orders`, `order_items` modelleri, `POST /api/orders` ile sipariş oluşturma ve stok düşme, `GET /api/orders` sipariş geçmişi, `PATCH /api/orders/:id/cancel` iptal ve stok iade mekanizması ile 15/15 test paketi tamamlandı) (#46).
+- [ ] **Gün 22 (20 Ekim):** Sipariş Tamamlama (Checkout) Frontend Arayüzü & Adres/Ödeme Seçimi (#47).
+- [ ] **Gün 23 (21 Ekim):** Sipariş Geçmişi, Sipariş Detay & Canlı Durum Takip Sayfası (#48).
+- [ ] **Gün 24 (22 Ekim):** Yönetici (Admin) Paneli & Sipariş/Ürün Yönetimi (#49).
+- [ ] **Gün 25 (23 Ekim):** Hafta 5 Sprint Review, E2E Sipariş Testleri & Milestone 5 Kapanışı (#50).
+
 ### ⏳ Gelecek Haftaların Yol Haritası
-- [ ] **5. Hafta (Gün 21–25) — Milestone 5:** Sipariş Sistemi & Yönetici (Admin) Paneli (#46–#50)
 - [ ] **6. Hafta (Gün 26–30) — Milestone 6:** Frontend-Backend Entegrasyonu & Güvenlik (#51–#55)
 - [ ] **7. Hafta (Gün 31–35) — Milestone 7:** Test Süreçleri, Docker & Teslimat (#56–#60)
 
