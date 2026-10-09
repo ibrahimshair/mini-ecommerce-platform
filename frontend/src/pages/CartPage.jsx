@@ -112,10 +112,10 @@ function CartPage() {
       return;
     }
     if (!currentUser) {
-      navigate("/login?redirect=/cart");
+      navigate("/login?redirect=/checkout");
       return;
     }
-    setIsCheckoutModalOpen(true);
+    navigate("/checkout");
   };
 
   return (
