@@ -169,6 +169,14 @@ function Navbar({ currentUser: propUser, onOpenAuth, onLogout: propLogout }) {
                   )}
                 </Link>
                 <Link
+                  to="/orders"
+                  className="btn btn-outline btn-sm"
+                  style={{ textDecoration: "none" }}
+                  title="Siparişlerimi Görüntüle"
+                >
+                  📦 Siparişlerim
+                </Link>
+                <Link
                   to="/profile"
                   className="btn btn-outline btn-sm"
                   style={{ textDecoration: "none" }}
