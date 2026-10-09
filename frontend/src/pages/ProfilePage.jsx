@@ -49,6 +49,24 @@ function ProfilePage({ currentUser: propUser, onLogout: propLogout }) {
   const [addressFormErrors, setAddressFormErrors] = useState({});
   const [addressFeedback, setAddressFeedback] = useState("");
 
+  // Orders Tab State
+  const [profileOrders, setProfileOrders] = useState([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
+
+  useEffect(() => {
+    if (activeTab === "orders") {
+      setOrdersLoading(true);
+      api.getOrders()
+        .then((res) => {
+          if (res?.success) {
+            setProfileOrders(res.data?.orders || []);
+          }
+        })
+        .catch(() => {})
+        .finally(() => setOrdersLoading(false));
+    }
+  }, [activeTab]);
+
   // Load profile from server on mount
   useEffect(() => {
     setIsLoading(true);
@@ -734,27 +752,120 @@ function ProfilePage({ currentUser: propUser, onLogout: propLogout }) {
             </div>
           )}
 
-          {/* TAB 3: Orders Placeholder */}
+          {/* TAB 3: Orders History & Tracking */}
           {activeTab === "orders" && (
             <div className="profile-card">
               <div className="profile-card-header">
                 <div>
-                  <h3>Sipariş Geçmişi</h3>
-                  <p className="card-subtitle">Verdiğiniz siparişlerin durumunu ve detaylarını takip edin</p>
+                  <h3>Sipariş Geçmişi & Kargo Takibi</h3>
+                  <p className="card-subtitle">
+                    Verdiğiniz siparişlerin aşamalarını ve canlı kargo durumunu takip edin
+                  </p>
                 </div>
-              </div>
-              <div className="profile-empty-state">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
-                  <line x1="8" y1="21" x2="16" y2="21" />
-                  <line x1="12" y1="17" x2="12" y2="21" />
-                </svg>
-                <h4>Henüz bir siparişiniz bulunmuyor</h4>
-                <p>Favori ürünlerinizi sepetinize ekleyerek ilk siparişinizi kolayca oluşturabilirsiniz.</p>
-                <Link to="/products" className="btn btn-primary" style={{ marginTop: "1rem" }}>
-                  Ürün Kataloğuna Göz At
+                <Link to="/orders" className="btn btn-outline btn-sm">
+                  Kargo Takip Merkezini Aç ↗
                 </Link>
               </div>
+
+              {ordersLoading ? (
+                <div style={{ padding: "3rem", textAlign: "center", color: "#64748b" }}>
+                  <p>Siparişleriniz yükleniyor...</p>
+                </div>
+              ) : profileOrders.length === 0 ? (
+                <div className="profile-empty-state">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+                    <line x1="8" y1="21" x2="16" y2="21" />
+                    <line x1="12" y1="17" x2="12" y2="21" />
+                  </svg>
+                  <h4>Henüz bir siparişiniz bulunmuyor</h4>
+                  <p>
+                    Favori ürünlerinizi sepetinize ekleyerek ilk siparişinizi kolayca oluşturabilirsiniz.
+                  </p>
+                  <Link
+                    to="/products"
+                    className="btn btn-primary"
+                    style={{ marginTop: "1rem" }}
+                  >
+                    Ürün Kataloğuna Göz At
+                  </Link>
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginTop: "1rem" }}>
+                  {profileOrders.map((ord) => (
+                    <div
+                      key={ord.id}
+                      style={{
+                        border: "1px solid #e2e8f0",
+                        borderRadius: "12px",
+                        padding: "1.25rem",
+                        backgroundColor: "#ffffff",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        flexWrap: "wrap",
+                        gap: "1rem",
+                      }}
+                    >
+                      <div>
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.25rem" }}>
+                          <strong style={{ fontFamily: "monospace", color: "var(--primary, #6366f1)" }}>
+                            {ord.orderNumber}
+                          </strong>
+                          <span
+                            style={{
+                              fontSize: "0.75rem",
+                              fontWeight: 700,
+                              padding: "0.2rem 0.6rem",
+                              borderRadius: "12px",
+                              backgroundColor:
+                                ord.status === "delivered"
+                                  ? "#ecfdf5"
+                                  : ord.status === "shipped"
+                                  ? "#e0f2fe"
+                                  : ord.status === "cancelled"
+                                  ? "#fef2f2"
+                                  : "#fef3c7",
+                              color:
+                                ord.status === "delivered"
+                                  ? "#065f46"
+                                  : ord.status === "shipped"
+                                  ? "#0369a1"
+                                  : ord.status === "cancelled"
+                                  ? "#991b1b"
+                                  : "#92400e",
+                            }}
+                          >
+                            {ord.status === "delivered"
+                              ? "✅ Teslim Edildi"
+                              : ord.status === "shipped"
+                              ? "🚚 Kargoda"
+                              : ord.status === "cancelled"
+                              ? "🚫 İptal Edildi"
+                              : "📦 Hazırlanıyor"}
+                          </span>
+                        </div>
+                        <p style={{ margin: 0, fontSize: "0.85rem", color: "#64748b" }}>
+                          {new Date(ord.createdAt).toLocaleDateString("tr-TR", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          })}{" "}
+                          &bull; Toplam: <strong>{new Intl.NumberFormat("tr-TR", { style: "currency", currency: "TRY" }).format(ord.totalPrice)}</strong>
+                        </p>
+                      </div>
+
+                      <button
+                        type="button"
+                        className="btn btn-outline btn-sm"
+                        onClick={() => navigate(`/orders?orderId=${ord.id}`)}
+                      >
+                        Kargo Takibi & Detay ➔
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </main>
