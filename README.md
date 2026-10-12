@@ -360,7 +360,7 @@ Frontend uygulaması varsayılan olarak `http://localhost:5173` adresinde çalı
 - [x] **Gün 21 (19 Ekim):** Sipariş Sistemi Veritabanı Mimarisi & Backend REST API (`orders`, `order_items` modelleri, `POST /api/orders` ile sipariş oluşturma ve stok düşme, `GET /api/orders` sipariş geçmişi, `PATCH /api/orders/:id/cancel` iptal ve stok iade mekanizması ile 15/15 test paketi tamamlandı) (#46).
 - [x] **Gün 22 (20 Ekim):** Sipariş Tamamlama (Checkout) Frontend Arayüzü & Adres/Ödeme Seçimi (`CheckoutPage.jsx`, interaktif sanal kredi kartı önizlemesi, adres seçimi/yeni adres formu, kapıda ödeme & havale alternatifleri, sipariş onay ekranı ve 11/11 test paketi tamamlandı) (#47).
 - [x] **Gün 23 (21 Ekim):** Sipariş Geçmişi, Sipariş Detay & Canlı Durum Takip Sayfası (`OrdersPage.jsx`, stepper kargo takip çubuğu, sipariş detay/fatura modalı, sipariş iptal & stok iade mekanizması ve 13/13 test paketi tamamlandı) (#48).
-- [ ] **Gün 24 (22 Ekim):** Yönetici (Admin) Paneli & Sipariş/Ürün Yönetimi (#49).
+- [x] **Gün 24 (22 Ekim):** Yönetici (Admin) Paneli & Sipariş/Ürün Yönetimi (`AdminPage.jsx`, `AdminPage.css`, KPI özet metrikleri, `/api/admin` ve `/admin` rotaları, sipariş durumu yönetimi, ürün CRUD & kritik stok yönetimi, rol bazlı erişim koruması ve 22/22 test paketi tamamlandı) (#49).
 - [ ] **Gün 25 (23 Ekim):** Hafta 5 Sprint Review, E2E Sipariş Testleri & Milestone 5 Kapanışı (#50).
 
 ### ⏳ Gelecek Haftaların Yol Haritası
