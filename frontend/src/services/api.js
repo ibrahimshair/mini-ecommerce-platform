@@ -37,7 +37,7 @@ class ApiService {
       return config;
     });
 
-    // Register default built-in 401 Unauthorized response interceptor
+    // Register default built-in response interceptor (401 Auth & 429 Rate Limit)
     this.addResponseInterceptor(
       async (response) => response,
       async (error) => {
@@ -45,6 +45,18 @@ class ApiService {
           console.warn("[Auth Interceptor] 401 Unauthorized detected. Clearing session.");
           this.logout();
           this.notifyUnauthorized(error);
+        } else if (error.status === 429) {
+          console.warn("[Security Interceptor] 429 Rate Limit exceeded.");
+          if (typeof window !== "undefined") {
+            window.dispatchEvent(
+              new CustomEvent("api:ratelimit", {
+                detail: {
+                  message: error.message || "Çok fazla istek gönderildi. Lütfen bekleyiniz.",
+                  retryAfter: error.data?.errors?.[0]?.retryAfterSeconds || 60,
+                },
+              })
+            );
+          }
         }
         return Promise.reject(error);
       }
@@ -257,6 +269,11 @@ class ApiService {
   // Health check helper
   async checkHealth() {
     return this.get("/health");
+  }
+
+  // Security Hardening & Audit status
+  async getSecurityStatus() {
+    return this.get("/health/security");
   }
 
   // Catalog & Product Endpoints
