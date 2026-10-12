@@ -5,6 +5,7 @@ const categoryRoutes = require("./category.routes");
 const authRoutes = require("./auth.routes");
 const cartRoutes = require("./cart.routes");
 const orderRoutes = require("./order.routes");
+const adminRoutes = require("./admin.routes");
 
 const router = express.Router();
 
@@ -26,6 +27,9 @@ router.use("/cart", cartRoutes);
 // Mount Orders endpoints
 router.use("/orders", orderRoutes);
 
+// Mount Admin endpoints
+router.use("/admin", adminRoutes);
+
 // API Root summary
 router.get("/", (req, res) => {
   res.json({
@@ -38,6 +42,7 @@ router.get("/", (req, res) => {
       auth: "/api/auth",
       cart: "/api/cart",
       orders: "/api/orders",
+      admin: "/api/admin",
     },
   });
 });

@@ -205,7 +205,7 @@ const validateCreateOrder = (req, res, next) => {
       message: "Teslimat adresi en az 5 karakter uzunluğunda olmalıdır.",
     });
   } else if (typeof shippingAddress === "object") {
-    if (!shippingAddress.address && !shippingAddress.addressLine && !shippingAddress.title) {
+    if (!shippingAddress.address && !shippingAddress.addressLine && !shippingAddress.title && !shippingAddress.detailedAddress) {
       errors.push({
         field: "shippingAddress",
         message: "Lütfen geçerli bir teslimat adresi belirtiniz.",

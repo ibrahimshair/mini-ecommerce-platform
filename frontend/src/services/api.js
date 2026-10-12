@@ -378,6 +378,39 @@ class ApiService {
     return this.patch(`/orders/${orderId}/cancel`, {});
   }
 
+  // Admin Management Endpoints
+  async getAdminStats() {
+    return this.get("/admin/stats");
+  }
+
+  async getAdminOrders(params = {}) {
+    const query = new URLSearchParams();
+    Object.entries(params).forEach(([key, val]) => {
+      if (val !== undefined && val !== null && val !== "") {
+        query.append(key, val);
+      }
+    });
+    const queryString = query.toString();
+    const endpoint = queryString ? `/admin/orders?${queryString}` : "/admin/orders";
+    return this.get(endpoint);
+  }
+
+  async updateAdminOrderStatus(orderId, status) {
+    return this.patch(`/admin/orders/${orderId}/status`, { status });
+  }
+
+  async getAdminProducts(params = {}) {
+    const query = new URLSearchParams();
+    Object.entries(params).forEach(([key, val]) => {
+      if (val !== undefined && val !== null && val !== "") {
+        query.append(key, val);
+      }
+    });
+    const queryString = query.toString();
+    const endpoint = queryString ? `/admin/products?${queryString}` : "/admin/products";
+    return this.get(endpoint);
+  }
+
   // Address Management Helpers (Persisted in localStorage per user)
   getAddresses(userId = "default") {
     try {
