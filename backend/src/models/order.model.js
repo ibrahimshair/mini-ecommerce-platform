@@ -214,6 +214,77 @@ const Order = {
   },
 
   /**
+   * Retrieves all orders across all users (for admin dashboard).
+   */
+  async findAll({ limit = 50, offset = 0, status, search } = {}) {
+    const whereConditions = [];
+    const params = [];
+
+    if (status && status !== "all" && status !== "Tümü") {
+      params.push(status);
+      whereConditions.push(`o.status = $${params.length}`);
+    }
+
+    if (search && search.trim()) {
+      params.push(`%${search.trim().toLowerCase()}%`);
+      whereConditions.push(`(LOWER(o.order_number) LIKE $${params.length} OR LOWER(COALESCE(u.name, '')) LIKE $${params.length} OR LOWER(COALESCE(u.email, '')) LIKE $${params.length})`);
+    }
+
+    const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(" AND ")}` : "";
+
+    params.push(limit);
+    const limitIndex = params.length;
+    params.push(offset);
+    const offsetIndex = params.length;
+
+    const text = `
+      SELECT 
+        o.id,
+        o.order_number AS "orderNumber",
+        o.user_id AS "userId",
+        COALESCE(u.name, 'Misafir Müşteri') AS "customerName",
+        COALESCE(u.email, '-') AS "customerEmail",
+        o.total_price AS "totalPrice",
+        o.status,
+        o.shipping_address AS "shippingAddress",
+        o.payment_method AS "paymentMethod",
+        o.payment_status AS "paymentStatus",
+        o.notes,
+        o.created_at AS "createdAt",
+        o.updated_at AS "updatedAt",
+        COUNT(oi.id)::int AS "itemCount"
+      FROM orders o
+      LEFT JOIN users u ON o.user_id = u.id
+      LEFT JOIN order_items oi ON o.id = oi.order_id
+      ${whereClause}
+      GROUP BY o.id, u.name, u.email
+      ORDER BY o.created_at DESC
+      LIMIT $${limitIndex} OFFSET $${offsetIndex};
+    `;
+    const res = await query(text, params);
+    return res.rows;
+  },
+
+  /**
+   * Retrieves aggregate statistics for all orders.
+   */
+  async getStats() {
+    const text = `
+      SELECT
+        COUNT(*)::int AS "totalOrders",
+        COALESCE(SUM(total_price), 0)::float AS "totalRevenue",
+        COUNT(CASE WHEN status = 'pending' THEN 1 END)::int AS "pendingCount",
+        COUNT(CASE WHEN status = 'processing' THEN 1 END)::int AS "processingCount",
+        COUNT(CASE WHEN status = 'shipped' THEN 1 END)::int AS "shippedCount",
+        COUNT(CASE WHEN status = 'delivered' THEN 1 END)::int AS "deliveredCount",
+        COUNT(CASE WHEN status = 'cancelled' THEN 1 END)::int AS "cancelledCount"
+      FROM orders;
+    `;
+    const res = await query(text);
+    return res.rows[0];
+  },
+
+  /**
    * Returns total count of orders for a user.
    */
   async countByUserId(userId) {

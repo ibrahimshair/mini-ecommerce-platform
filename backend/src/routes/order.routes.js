@@ -1,9 +1,23 @@
 const express = require("express");
 const OrderController = require("../controllers/order.controller");
-const { authenticate } = require("../middleware/auth.middleware");
+const { authenticate, authorizeRoles } = require("../middleware/auth.middleware");
 const { validateCreateOrder } = require("../middleware/validate");
 
 const router = express.Router();
+
+/**
+ * @route   GET /api/orders/admin/all
+ * @desc    Retrieve all customer orders across system (Admin only)
+ * @access  Private (Admin only)
+ */
+router.get("/admin/all", authenticate, authorizeRoles("admin"), OrderController.getAllOrdersAdmin);
+
+/**
+ * @route   GET /api/orders/admin/stats
+ * @desc    Retrieve aggregate order and inventory statistics (Admin only)
+ * @access  Private (Admin only)
+ */
+router.get("/admin/stats", authenticate, authorizeRoles("admin"), OrderController.getAdminStats);
 
 /**
  * @route   POST /api/orders
@@ -32,5 +46,12 @@ router.get("/:id", authenticate, OrderController.getOrderById);
  * @access  Private (Requires authentication)
  */
 router.patch("/:id/cancel", authenticate, OrderController.cancelOrder);
+
+/**
+ * @route   PATCH /api/orders/:id/status
+ * @desc    Update order lifecycle status (Admin only)
+ * @access  Private (Admin only)
+ */
+router.patch("/:id/status", authenticate, authorizeRoles("admin"), OrderController.updateOrderStatus);
 
 module.exports = router;
