@@ -27,16 +27,26 @@ function App() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState("register");
   const [sessionExpiredNotice, setSessionExpiredNotice] = useState(false);
+  const [rateLimitNotice, setRateLimitNotice] = useState(null);
 
-  // Listen for global session expiration event emitted by api interceptor
+  // Listen for global session expiration and rate limit events
   useEffect(() => {
     const handleUnauthorized = (e) => {
       setSessionExpiredNotice(true);
       setTimeout(() => setSessionExpiredNotice(false), 5000);
     };
 
+    const handleRateLimit = (e) => {
+      setRateLimitNotice(e.detail?.message || "İstek kotası aşıldı. Lütfen bekleyiniz.");
+      setTimeout(() => setRateLimitNotice(null), 6000);
+    };
+
     window.addEventListener("auth:unauthorized", handleUnauthorized);
-    return () => window.removeEventListener("auth:unauthorized", handleUnauthorized);
+    window.addEventListener("api:ratelimit", handleRateLimit);
+    return () => {
+      window.removeEventListener("auth:unauthorized", handleUnauthorized);
+      window.removeEventListener("api:ratelimit", handleRateLimit);
+    };
   }, []);
 
   // Listen to URL query parameter (?auth=login or ?auth=register)
@@ -92,6 +102,42 @@ function App() {
           <button
             type="button"
             onClick={() => setSessionExpiredNotice(false)}
+            style={{
+              background: "transparent",
+              border: "none",
+              cursor: "pointer",
+              fontWeight: "bold",
+              marginLeft: "1rem",
+            }}
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
+      {rateLimitNotice && (
+        <div
+          style={{
+            backgroundColor: "#fffbeb",
+            color: "#b45309",
+            borderBottom: "1px solid #fde68a",
+            padding: "0.75rem 1rem",
+            textAlign: "center",
+            fontSize: "0.875rem",
+            fontWeight: 600,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "0.5rem",
+            position: "sticky",
+            top: sessionExpiredNotice ? "40px" : 0,
+            zIndex: 1099,
+          }}
+        >
+          <span>🛡️ {rateLimitNotice}</span>
+          <button
+            type="button"
+            onClick={() => setRateLimitNotice(null)}
             style={{
               background: "transparent",
               border: "none",

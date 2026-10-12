@@ -4,13 +4,24 @@ const morgan = require("morgan");
 const config = require("./config");
 const apiRoutes = require("./routes");
 const { notFoundHandler, errorHandler } = require("./middleware/errorHandler");
+const {
+  securityHeaders,
+  sanitizeInput,
+  globalRateLimiter,
+} = require("./middleware/security.middleware");
 
 const app = express();
 
-// Middlewares
+// Disable technology disclosure header
+app.disable("x-powered-by");
+
+// 1. Security Headers (OWASP Hardening)
+app.use(securityHeaders);
+
+// 2. CORS Policy
 app.use(
   cors({
-    origin: config.clientUrl,
+    origin: config.clientUrl || "*",
     credentials: true,
   })
 );
@@ -20,8 +31,12 @@ if (config.nodeEnv !== "test") {
   app.use(morgan("dev"));
 }
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// 3. Body parsers with payload limit defense
+app.use(express.json({ limit: "2mb" }));
+app.use(express.urlencoded({ extended: true, limit: "2mb" }));
+
+// 4. Input Sanitization (XSS and Prototype Pollution defense)
+app.use(sanitizeInput);
 
 // Root welcome endpoint
 app.get("/", (req, res) => {
@@ -33,8 +48,8 @@ app.get("/", (req, res) => {
   });
 });
 
-// API Routes
-app.use("/api", apiRoutes);
+// 5. API Routes with Global Rate Limiting
+app.use("/api", globalRateLimiter, apiRoutes);
 
 // Fallback 404 & Central Error Handling
 app.use(notFoundHandler);

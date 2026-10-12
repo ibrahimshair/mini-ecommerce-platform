@@ -47,6 +47,26 @@ const getHealth = async (req, res, next) => {
   }
 };
 
+const { getSecurityAuditReport } = require("../middleware/security.middleware");
+
+/**
+ * Security Health Controller
+ * Reports active OWASP security headers, rate limiting, and sanitization configurations.
+ */
+const getSecurityHealth = (req, res, next) => {
+  try {
+    const report = getSecurityAuditReport();
+    return successResponse(res, {
+      statusCode: 200,
+      message: "API security hardening policies are active and operational",
+      data: report,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getHealth,
+  getSecurityHealth,
 };
