@@ -168,6 +168,25 @@ function Navbar({ currentUser: propUser, onOpenAuth, onLogout: propLogout }) {
                     </span>
                   )}
                 </Link>
+                {currentUser.role === "admin" && (
+                  <Link
+                    to="/admin"
+                    className="btn btn-primary btn-sm"
+                    style={{
+                      textDecoration: "none",
+                      background: "linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)",
+                      color: "#fff",
+                      boxShadow: "0 2px 8px rgba(99, 102, 241, 0.3)",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "0.35rem",
+                      fontWeight: 600,
+                    }}
+                    title="Yönetici Paneli"
+                  >
+                    ⚙️ Yönetici Paneli
+                  </Link>
+                )}
                 <Link
                   to="/orders"
                   className="btn btn-outline btn-sm"
