@@ -365,7 +365,7 @@ Frontend uygulaması varsayılan olarak `http://localhost:5173` adresinde çalı
 
 ### 🚀 6. Hafta (Gün 26–30) — Milestone 6: Frontend-Backend Entegrasyonu & Güvenlik (Devam Ediyor)
 - [x] **Gün 26 (26 Ekim):** API Güvenlik Sertleştirmesi, Rate Limiting, OWASP Güvenlik Başlıkları & Girdi Sanitizasyonu (`security.middleware.js`, sliding window rate limiter, XSS temizleme, `GET /api/health/security`, `api.js` 429 interceptor ve 16/16 test paketi tamamlandı) (#51).
-- [ ] **Gün 27 (27 Ekim):** Global Hata Yönetimi, Ağ Kesintilerine Dayanıklılık & Yeniden Deneme Mekanizması (#52).
+- [x] **Gün 27 (27 Ekim):** Global Hata Yönetimi, Ağ Kesintilerine Dayanıklılık & Yeniden Deneme Mekanizması (`ErrorBoundary.jsx`, `ErrorBoundary.css`, `useNetworkStatus.js`, `api.js` exponential backoff retry & timeout abort kontrolü, standart hata JSON şeması, `GET /api/health/resilience` ve 15/15 test paketi tamamlandı) (#52).
 - [ ] **Gün 28 (28 Ekim):** Frontend-Backend Veri Senkronizasyonu & Performans Optimizasyonları (#53).
 - [ ] **Gün 29 (29 Ekim):** İleri Düzey Arama, Filtreleme, Sayfalama & Toast Bildirim Entegrasyonu (#54).
 - [ ] **Gün 30 (30 Ekim):** Hafta 6 Sprint Review, Güvenlik & Entegrasyon Testleri ve Milestone 6 Kapanışı (#55).
