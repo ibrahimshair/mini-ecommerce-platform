@@ -19,7 +19,8 @@
     "test:admin": "node src/scripts/testMilestone5AdminDashboard.js",
     "test:sprint5": "node src/scripts/testMilestone5SprintReview.js",
     "test:security": "node src/scripts/testMilestone6Security.js",
-    "test": "npm run test:auth && npm run test:products && npm run test:cart && npm run test:cart:ui && npm run test:sprint4 && npm run test:orders && npm run test:checkout && npm run test:tracking && npm run test:admin && npm run test:sprint5 && npm run test:security"
+    "test:resilience": "node src/scripts/testMilestone6ErrorResilience.js",
+    "test": "npm run test:auth && npm run test:products && npm run test:cart && npm run test:cart:ui && npm run test:sprint4 && npm run test:orders && npm run test:checkout && npm run test:tracking && npm run test:admin && npm run test:sprint5 && npm run test:security && npm run test:resilience"
   },
   "keywords": [],
   "author": "",
