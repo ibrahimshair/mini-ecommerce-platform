@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { Link } from "react-router-dom";
 import api from "../services/api";
 import { useAuth } from "../context/AuthContext";
+import useDebounce from "../hooks/useDebounce";
 import "./AdminPage.css";
 
 const STATUS_LABELS = {
@@ -249,6 +250,10 @@ function AdminPage() {
     }
   };
 
+  // Debounced search queries for smooth typing & zero UI jank (Day 28)
+  const debouncedOrderQuery = useDebounce(orderSearchQuery, 250);
+  const debouncedProductQuery = useDebounce(productSearchQuery, 250);
+
   // Filtered Orders
   const filteredOrders = useMemo(() => {
     return orders.filter((order) => {
@@ -257,8 +262,8 @@ function AdminPage() {
         return false;
       }
       // Search query
-      if (orderSearchQuery.trim()) {
-        const q = orderSearchQuery.toLowerCase();
+      if (debouncedOrderQuery.trim()) {
+        const q = debouncedOrderQuery.toLowerCase();
         const num = (order.orderNumber || "").toLowerCase();
         const name = (order.customerName || order.shippingAddress?.fullName || "").toLowerCase();
         const city = (order.shippingAddress?.city || "").toLowerCase();
@@ -266,7 +271,7 @@ function AdminPage() {
       }
       return true;
     });
-  }, [orders, orderStatusFilter, orderSearchQuery]);
+  }, [orders, orderStatusFilter, debouncedOrderQuery]);
 
   // Filtered Products
   const filteredProducts = useMemo(() => {
@@ -281,15 +286,15 @@ function AdminPage() {
       if (productStockFilter === "low" && (prod.stock > 5 || prod.stock <= 0)) return false;
       if (productStockFilter === "out" && prod.stock > 0) return false;
       // Search
-      if (productSearchQuery.trim()) {
-        const q = productSearchQuery.toLowerCase();
+      if (debouncedProductQuery.trim()) {
+        const q = debouncedProductQuery.toLowerCase();
         const name = (prod.name || "").toLowerCase();
         const desc = (prod.description || "").toLowerCase();
         return name.includes(q) || desc.includes(q);
       }
       return true;
     });
-  }, [products, productCategoryFilter, productStockFilter, productSearchQuery]);
+  }, [products, productCategoryFilter, productStockFilter, debouncedProductQuery]);
 
   return (
     <div className="admin-container">

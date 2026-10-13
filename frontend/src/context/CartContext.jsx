@@ -158,6 +158,15 @@ export function CartProvider({ children }) {
     refreshCart();
   }, [currentUser, refreshCart]);
 
+  // Day 28: Live Data Sync on window focus and reconnect events
+  useEffect(() => {
+    const handleSync = () => {
+      refreshCart();
+    };
+    window.addEventListener("app:sync-data", handleSync);
+    return () => window.removeEventListener("app:sync-data", handleSync);
+  }, [refreshCart]);
+
   /**
    * Add a product to the shopping cart
    */

@@ -107,8 +107,28 @@ const getResilienceHealth = (req, res, next) => {
   }
 };
 
+const { getPerformanceReport } = require("../middleware/performance.middleware");
+
+/**
+ * Performance Health Controller
+ * Reports active performance features, HTTP caching headers, and memory metrics.
+ */
+const getPerformanceHealth = (req, res, next) => {
+  try {
+    const report = getPerformanceReport();
+    return successResponse(res, {
+      statusCode: 200,
+      message: "System performance optimizations and sync engines are active and operational",
+      data: report,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getHealth,
   getSecurityHealth,
   getResilienceHealth,
+  getPerformanceHealth,
 };

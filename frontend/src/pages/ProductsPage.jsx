@@ -4,6 +4,7 @@ import ProductCard from "../components/ProductCard";
 import ProductDetailModal from "../components/ProductDetailModal";
 import api from "../services/api";
 import { formatCurrency } from "../utils/formatters";
+import useDebounce from "../hooks/useDebounce";
 import "./ProductsPage.css";
 
 const DEFAULT_PRODUCTS = [
@@ -178,8 +179,10 @@ function ProductsPage({ initialCategory = "Tümü", searchQuery = "", onNavigate
     };
   }, []);
 
-  // Filter and sort products
+  // Filter and sort products (Debounced for smooth responsive UI performance - Day 28)
   const activeSearch = urlSearch !== null ? urlSearch : searchQuery;
+  const debouncedSearch = useDebounce(activeSearch, 250);
+  const debouncedMaxPrice = useDebounce(maxPrice, 150);
 
   const filteredProducts = useMemo(() => {
     return products
@@ -191,19 +194,19 @@ function ProductsPage({ initialCategory = "Tümü", searchQuery = "", onNavigate
           product.categorySlug === selectedCategory.toLowerCase();
 
         // Price filter
-        const matchesPrice = Number(product.price) <= maxPrice;
+        const matchesPrice = Number(product.price) <= debouncedMaxPrice;
 
         // Stock filter
         const matchesStock = !onlyInStock || (product.stock && product.stock > 0);
 
         // Search query filter
         const matchesSearch =
-          !activeSearch ||
-          product.name.toLowerCase().includes(activeSearch.toLowerCase()) ||
+          !debouncedSearch ||
+          product.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
           (product.description &&
-            product.description.toLowerCase().includes(activeSearch.toLowerCase())) ||
+            product.description.toLowerCase().includes(debouncedSearch.toLowerCase())) ||
           (product.category &&
-            product.category.toLowerCase().includes(activeSearch.toLowerCase()));
+            product.category.toLowerCase().includes(debouncedSearch.toLowerCase()));
 
         return matchesCategory && matchesPrice && matchesStock && matchesSearch;
       })
@@ -213,7 +216,7 @@ function ProductsPage({ initialCategory = "Tümü", searchQuery = "", onNavigate
         if (sortBy === "rating-desc") return Number(b.rating) - Number(a.rating);
         return 0; // recommended
       });
-  }, [products, selectedCategory, maxPrice, onlyInStock, sortBy, activeSearch]);
+  }, [products, selectedCategory, debouncedMaxPrice, onlyInStock, sortBy, debouncedSearch]);
 
   const handleResetFilters = () => {
     setSelectedCategory("Tümü");
