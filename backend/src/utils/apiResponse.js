@@ -2,12 +2,13 @@
  * Standard API Response Utilities
  */
 
-const successResponse = (res, { statusCode = 200, message = "Success", data = null, meta = null }) => {
+const successResponse = (res, { statusCode = 200, message = "Success", data = null, meta = null, ...rest }) => {
   const response = {
     success: true,
     message,
     ...(data !== null && { data }),
     ...(meta !== null && { meta }),
+    ...rest,
   };
   return res.status(statusCode).json(response);
 };

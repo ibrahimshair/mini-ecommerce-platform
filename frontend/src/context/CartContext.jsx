@@ -101,6 +101,17 @@ export function CartProvider({ children }) {
   const showToast = useCallback((message, type = "success") => {
     const id = Date.now();
     setToast({ id, message, type });
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("toast:notify", {
+          detail: {
+            type,
+            message,
+            title: type === "success" ? "Sepet Güncellendi" : type === "error" ? "Sepet Hatası" : "Sepet Bildirimi",
+          },
+        })
+      );
+    }
     setTimeout(() => {
       setToast((curr) => (curr?.id === id ? null : curr));
     }, 3200);

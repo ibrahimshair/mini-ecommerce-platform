@@ -9,32 +9,99 @@ const { FALLBACK_CATEGORIES, FALLBACK_PRODUCTS } = require("../utils/dummyData")
 const ProductController = {
   /**
    * GET /api/products
+   * Enhanced with multi-criteria filtering, search, sorting, and pagination.
    */
   async getProducts(req, res, next) {
     try {
-      const { category, minPrice, maxPrice, search, inStock, sortBy, sortOrder } = req.query;
+      const {
+        category,
+        minPrice,
+        maxPrice,
+        search,
+        q,
+        inStock,
+        minRating,
+        rating,
+        isFeatured,
+        sortBy,
+        sortOrder,
+      } = req.query;
+
+      const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+      const limit = req.query.limit
+        ? Math.max(1, Math.min(100, parseInt(req.query.limit, 10) || 12))
+        : (req.query.page ? 12 : 50);
+      const offset = (page - 1) * limit;
+
+      const querySearch = (search || q || "").trim() || undefined;
+      const minPriceVal = minPrice !== undefined && minPrice !== "" ? Number(minPrice) : undefined;
+      const maxPriceVal = maxPrice !== undefined && maxPrice !== "" ? Number(maxPrice) : undefined;
+      const inStockOnly = inStock === "true" || inStock === "1" || inStock === true;
+      const minRatingVal = minRating !== undefined && minRating !== ""
+        ? Number(minRating)
+        : (rating !== undefined && rating !== "" ? Number(rating) : undefined);
+      const isFeaturedVal = isFeatured !== undefined
+        ? (isFeatured === "true" || isFeatured === "1" || isFeatured === true)
+        : undefined;
 
       try {
-        const products = await Product.findAll({
+        const total = await Product.count({
           categorySlug: category,
-          minPrice: minPrice ? Number(minPrice) : undefined,
-          maxPrice: maxPrice ? Number(maxPrice) : undefined,
-          search,
-          inStock: inStock === "true",
-          sortBy,
-          sortOrder,
+          minPrice: minPriceVal,
+          maxPrice: maxPriceVal,
+          search: querySearch,
+          inStock: inStockOnly,
+          minRating: minRatingVal,
+          isFeatured: isFeaturedVal,
         });
 
-        if (products && products.length > 0) {
+        const products = await Product.findAll({
+          categorySlug: category,
+          minPrice: minPriceVal,
+          maxPrice: maxPriceVal,
+          search: querySearch,
+          inStock: inStockOnly,
+          minRating: minRatingVal,
+          isFeatured: isFeaturedVal,
+          sortBy,
+          sortOrder,
+          limit,
+          offset,
+        });
+
+        if (products !== null && products !== undefined) {
+          const totalPages = Math.ceil(total / limit) || 1;
+          const pagination = {
+            total,
+            page,
+            limit,
+            totalPages,
+            hasNextPage: page < totalPages,
+            hasPrevPage: page > 1,
+          };
+
           return successResponse(res, {
             statusCode: 200,
             message: "Products retrieved successfully from database",
             data: products,
-            meta: { total: products.length, source: "database" },
+            pagination,
+            meta: {
+              ...pagination,
+              source: "database",
+            },
+            filtersApplied: {
+              category: category || null,
+              minPrice: minPriceVal !== undefined ? minPriceVal : null,
+              maxPrice: maxPriceVal !== undefined ? maxPriceVal : null,
+              search: querySearch || null,
+              inStock: inStockOnly,
+              minRating: minRatingVal !== undefined ? minRatingVal : null,
+              sortBy: sortBy || "created_at",
+            },
           });
         }
       } catch (dbErr) {
-        // Fallback to in-memory dataset when DB connection is pending
+        // Fallback to in-memory dataset when DB connection is pending or fails
       }
 
       // Filter fallback dataset
@@ -43,39 +110,87 @@ const ProductController = {
       if (category && category !== "all" && category !== "Tümü") {
         filtered = filtered.filter(
           (p) =>
-            p.categorySlug === category.toLowerCase() ||
-            p.category.toLowerCase() === category.toLowerCase()
+            (p.categorySlug && p.categorySlug.toLowerCase() === category.toLowerCase()) ||
+            (p.category && p.category.toLowerCase() === category.toLowerCase())
         );
       }
 
-      if (maxPrice) {
-        filtered = filtered.filter((p) => p.price <= Number(maxPrice));
+      if (maxPriceVal !== undefined && !isNaN(maxPriceVal)) {
+        filtered = filtered.filter((p) => p.price <= maxPriceVal);
       }
 
-      if (minPrice) {
-        filtered = filtered.filter((p) => p.price >= Number(minPrice));
+      if (minPriceVal !== undefined && !isNaN(minPriceVal)) {
+        filtered = filtered.filter((p) => p.price >= minPriceVal);
       }
 
-      if (inStock === "true") {
+      if (inStockOnly) {
         filtered = filtered.filter((p) => p.stock > 0);
       }
 
-      if (search && search.trim()) {
-        const q = search.toLowerCase();
+      if (minRatingVal !== undefined && !isNaN(minRatingVal)) {
+        filtered = filtered.filter((p) => (p.rating || 0) >= minRatingVal);
+      }
+
+      if (isFeaturedVal !== undefined) {
+        filtered = filtered.filter((p) => Boolean(p.isFeatured) === isFeaturedVal);
+      }
+
+      if (querySearch) {
+        const qStr = querySearch.toLowerCase();
         filtered = filtered.filter(
-          (p) => p.name.toLowerCase().includes(q) || p.description.toLowerCase().includes(q)
+          (p) =>
+            (p.name && p.name.toLowerCase().includes(qStr)) ||
+            (p.description && p.description.toLowerCase().includes(qStr))
         );
       }
 
-      if (sortBy === "price-asc") filtered.sort((a, b) => a.price - b.price);
-      else if (sortBy === "price-desc") filtered.sort((a, b) => b.price - a.price);
-      else if (sortBy === "rating-desc") filtered.sort((a, b) => b.rating - a.rating);
+      if (sortBy === "price-asc" || (sortBy === "price" && sortOrder?.toUpperCase() === "ASC")) {
+        filtered.sort((a, b) => a.price - b.price);
+      } else if (sortBy === "price-desc" || (sortBy === "price" && sortOrder?.toUpperCase() === "DESC")) {
+        filtered.sort((a, b) => b.price - a.price);
+      } else if (sortBy === "rating-desc" || (sortBy === "rating" && sortOrder?.toUpperCase() === "DESC")) {
+        filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+      } else if (sortBy === "rating" && sortOrder?.toUpperCase() === "ASC") {
+        filtered.sort((a, b) => (a.rating || 0) - (b.rating || 0));
+      } else if (sortBy === "popular") {
+        filtered.sort((a, b) => (b.reviewCount || 0) - (a.reviewCount || 0));
+      } else if (sortBy === "newest") {
+        filtered.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+      } else if (sortBy === "name") {
+        filtered.sort((a, b) => (sortOrder?.toUpperCase() === "DESC" ? b.name.localeCompare(a.name) : a.name.localeCompare(b.name)));
+      }
+
+      const total = filtered.length;
+      const totalPages = Math.ceil(total / limit) || 1;
+      const paginatedData = filtered.slice(offset, offset + limit);
+
+      const pagination = {
+        total,
+        page,
+        limit,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+      };
 
       return successResponse(res, {
         statusCode: 200,
         message: "Products retrieved successfully",
-        data: filtered,
-        meta: { total: filtered.length, source: "application-memory" },
+        data: paginatedData,
+        pagination,
+        meta: {
+          ...pagination,
+          source: "application-memory",
+        },
+        filtersApplied: {
+          category: category || null,
+          minPrice: minPriceVal !== undefined ? minPriceVal : null,
+          maxPrice: maxPriceVal !== undefined ? maxPriceVal : null,
+          search: querySearch || null,
+          inStock: inStockOnly,
+          minRating: minRatingVal !== undefined ? minRatingVal : null,
+          sortBy: sortBy || "created_at",
+        },
       });
     } catch (error) {
       next(error);
