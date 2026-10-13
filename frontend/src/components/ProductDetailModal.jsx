@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { formatCurrency } from "../utils/formatters";
 import { useCart } from "../context/CartContext";
 import "./ProductDetailModal.css";
@@ -6,6 +7,23 @@ import "./ProductDetailModal.css";
 function ProductDetailModal({ product, onClose, onAddToCart }) {
   const { addToCart, getItemQuantityInCart, getRemainingStock } = useCart();
   const [quantity, setQuantity] = useState(1);
+
+  // Lock background body scroll while modal is open to prevent screen shifting
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    const originalPaddingRight = document.body.style.paddingRight;
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+
+    document.body.style.overflow = "hidden";
+    if (scrollbarWidth > 0) {
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+    }
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      document.body.style.paddingRight = originalPaddingRight;
+    };
+  }, []);
 
   // Close modal on Escape key press
   useEffect(() => {
@@ -199,6 +217,29 @@ function ProductDetailModal({ product, onClose, onAddToCart }) {
                   ? "Maksimum Stok Sepette"
                   : `Sepete Ekle (${formatCurrency(price * quantity)})`}
               </button>
+
+              <Link
+                to={`/products/${id}`}
+                onClick={onClose}
+                style={{
+                  display: "inline-block",
+                  width: "100%",
+                  textAlign: "center",
+                  marginTop: "0.65rem",
+                  fontSize: "0.875rem",
+                  fontWeight: 600,
+                  color: "var(--primary)",
+                  textDecoration: "none",
+                  padding: "0.5rem",
+                  borderRadius: "var(--radius-md)",
+                  border: "1px dashed var(--border-color)",
+                  transition: "var(--transition)",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--primary-light)")}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+              >
+                🔍 Ayrıntılı Ürün Sayfasına Git &rarr;
+              </Link>
             </div>
 
             <div className="modal-features-list">

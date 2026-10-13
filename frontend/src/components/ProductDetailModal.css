@@ -12,6 +12,7 @@
   z-index: 1000;
   padding: 1.5rem;
   animation: modalFadeIn 0.2s ease-out;
+  overscroll-behavior: contain;
 }
 
 .modal-content {
@@ -24,6 +25,7 @@
   position: relative;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   animation: modalSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  overscroll-behavior: contain;
 }
 
 .modal-close-btn {
