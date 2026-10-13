@@ -5,6 +5,7 @@ import './index.css'
 import App from './App.jsx'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
 import { AuthProvider } from './context/AuthContext.jsx'
+import { ToastProvider } from './context/ToastContext.jsx'
 import { CartProvider } from './context/CartContext.jsx'
 
 createRoot(document.getElementById('root')).render(
@@ -12,9 +13,11 @@ createRoot(document.getElementById('root')).render(
     <ErrorBoundary>
       <BrowserRouter>
         <AuthProvider>
-          <CartProvider>
-            <App />
-          </CartProvider>
+          <ToastProvider>
+            <CartProvider>
+              <App />
+            </CartProvider>
+          </ToastProvider>
         </AuthProvider>
       </BrowserRouter>
     </ErrorBoundary>

@@ -13,6 +13,7 @@ const Product = {
     maxPrice,
     search,
     inStock,
+    minRating,
     isFeatured,
     sortBy = "created_at",
     sortOrder = "DESC",
@@ -45,6 +46,12 @@ const Product = {
       conditions.push(`p.stock > 0`);
     }
 
+    if (minRating !== undefined && minRating !== null) {
+      conditions.push(`p.rating >= $${paramIndex}`);
+      values.push(Number(minRating));
+      paramIndex++;
+    }
+
     if (isFeatured !== undefined && isFeatured !== null) {
       conditions.push(`p.is_featured = $${paramIndex}`);
       values.push(isFeatured);
@@ -57,15 +64,36 @@ const Product = {
       paramIndex++;
     }
 
-    // Sanitize sort parameters
+    // Flexible Sort handling (Day 29)
     const allowedSortFields = {
       price: "p.price",
       rating: "p.rating",
       name: "p.name",
       created_at: "p.created_at",
+      review_count: "p.review_count",
     };
-    const sortField = allowedSortFields[sortBy] || "p.created_at";
-    const orderDirection = sortOrder.toUpperCase() === "ASC" ? "ASC" : "DESC";
+
+    let sortField = "p.created_at";
+    let orderDirection = sortOrder.toUpperCase() === "ASC" ? "ASC" : "DESC";
+
+    if (sortBy === "price-asc") {
+      sortField = "p.price";
+      orderDirection = "ASC";
+    } else if (sortBy === "price-desc") {
+      sortField = "p.price";
+      orderDirection = "DESC";
+    } else if (sortBy === "rating-desc") {
+      sortField = "p.rating";
+      orderDirection = "DESC";
+    } else if (sortBy === "newest") {
+      sortField = "p.created_at";
+      orderDirection = "DESC";
+    } else if (sortBy === "popular") {
+      sortField = "p.review_count";
+      orderDirection = "DESC";
+    } else if (allowedSortFields[sortBy]) {
+      sortField = allowedSortFields[sortBy];
+    }
 
     const whereClause = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
 
@@ -234,11 +262,69 @@ const Product = {
   },
 
   /**
-   * Returns total count of active products.
+   * Returns total count of active products matching filters.
    */
-  async count() {
-    const text = `SELECT COUNT(*) AS total FROM products WHERE is_active = true;`;
-    const res = await query(text);
+  async count({
+    categorySlug,
+    minPrice,
+    maxPrice,
+    search,
+    inStock,
+    minRating,
+    isFeatured,
+  } = {}) {
+    const conditions = ["p.is_active = true"];
+    const values = [];
+    let paramIndex = 1;
+
+    if (categorySlug && categorySlug !== "all" && categorySlug !== "Tümü") {
+      conditions.push(`c.slug = $${paramIndex}`);
+      values.push(categorySlug.toLowerCase());
+      paramIndex++;
+    }
+
+    if (minPrice !== undefined && minPrice !== null) {
+      conditions.push(`p.price >= $${paramIndex}`);
+      values.push(minPrice);
+      paramIndex++;
+    }
+
+    if (maxPrice !== undefined && maxPrice !== null) {
+      conditions.push(`p.price <= $${paramIndex}`);
+      values.push(maxPrice);
+      paramIndex++;
+    }
+
+    if (inStock) {
+      conditions.push(`p.stock > 0`);
+    }
+
+    if (minRating !== undefined && minRating !== null) {
+      conditions.push(`p.rating >= $${paramIndex}`);
+      values.push(Number(minRating));
+      paramIndex++;
+    }
+
+    if (isFeatured !== undefined && isFeatured !== null) {
+      conditions.push(`p.is_featured = $${paramIndex}`);
+      values.push(isFeatured);
+      paramIndex++;
+    }
+
+    if (search && search.trim()) {
+      conditions.push(`(p.name ILIKE $${paramIndex} OR p.description ILIKE $${paramIndex})`);
+      values.push(`%${search.trim()}%`);
+      paramIndex++;
+    }
+
+    const whereClause = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
+    const text = `
+      SELECT COUNT(*) AS total
+      FROM products p
+      LEFT JOIN categories c ON p.category_id = c.id
+      ${whereClause};
+    `;
+    const res = await query(text, values);
     return parseInt(res.rows[0]?.total || 0, 10);
   },
 };

@@ -1,10 +1,12 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import ProductCard from "../components/ProductCard";
 import ProductDetailModal from "../components/ProductDetailModal";
+import Pagination from "../components/Pagination";
 import api from "../services/api";
 import { formatCurrency } from "../utils/formatters";
 import useDebounce from "../hooks/useDebounce";
+import { useToast } from "../context/ToastContext";
 import "./ProductsPage.css";
 
 const DEFAULT_PRODUCTS = [
@@ -117,31 +119,71 @@ const DEFAULT_CATEGORIES = [
 
 function ProductsPage({ initialCategory = "Tümü", searchQuery = "", onNavigateHome }) {
   const [searchParams, setSearchParams] = useSearchParams();
+  const toast = useToast();
+
   const urlCategory = searchParams.get("category");
   const urlSearch = searchParams.get("search");
+  const urlRating = searchParams.get("rating");
+  const urlMaxPrice = searchParams.get("maxPrice");
+  const urlInStock = searchParams.get("inStock");
+  const urlSortBy = searchParams.get("sortBy");
+  const urlPage = searchParams.get("page");
+  const urlLimit = searchParams.get("limit");
 
   const [products, setProducts] = useState(DEFAULT_PRODUCTS);
   const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
-  const [selectedCategory, setSelectedCategory] = useState(urlCategory || initialCategory);
-  const [sortBy, setSortBy] = useState("recommended");
-  const [maxPrice, setMaxPrice] = useState(5000);
-  const [onlyInStock, setOnlyInStock] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
-  // Sync category if URL parameter changes
-  useEffect(() => {
-    if (urlCategory) {
-      if (urlCategory === "Moda") {
-        setSelectedCategory("Giyim & Moda");
-      } else {
-        setSelectedCategory(urlCategory);
+  // Derive filter states from URL search params or defaults
+  const selectedCategory = urlCategory
+    ? urlCategory === "Moda"
+      ? "Giyim & Moda"
+      : urlCategory
+    : initialCategory || "Tümü";
+
+  const activeSearch = urlSearch !== null ? urlSearch : searchQuery;
+  const maxPrice = urlMaxPrice ? Number(urlMaxPrice) : 5000;
+  const onlyInStock = urlInStock === "true";
+  const minRating = urlRating || "all";
+  const sortBy = urlSortBy || "recommended";
+  const page = Math.max(1, Number(urlPage) || 1);
+  const limit = Math.max(1, Number(urlLimit) || 12);
+
+  // Debounced filters for responsive performance (Day 28)
+  const debouncedSearch = useDebounce(activeSearch, 250);
+  const debouncedMaxPrice = useDebounce(maxPrice, 150);
+
+  // Helper to update URL search parameters
+  const updateFilter = useCallback(
+    (updates) => {
+      const newParams = new URLSearchParams(searchParams);
+      Object.entries(updates).forEach(([key, val]) => {
+        if (
+          val === null ||
+          val === undefined ||
+          val === "" ||
+          val === "Tümü" ||
+          val === "all" ||
+          (key === "page" && val === 1) ||
+          (key === "maxPrice" && Number(val) >= 5000)
+        ) {
+          newParams.delete(key);
+        } else {
+          newParams.set(key, String(val));
+        }
+      });
+
+      // Reset page to 1 when any filter other than page changes
+      if (!("page" in updates)) {
+        newParams.delete("page");
       }
-    } else {
-      setSelectedCategory(initialCategory || "Tümü");
-    }
-  }, [urlCategory, initialCategory]);
+
+      setSearchParams(newParams);
+    },
+    [searchParams, setSearchParams]
+  );
 
   // Fetch products and categories via API client
   useEffect(() => {
@@ -179,11 +221,7 @@ function ProductsPage({ initialCategory = "Tümü", searchQuery = "", onNavigate
     };
   }, []);
 
-  // Filter and sort products (Debounced for smooth responsive UI performance - Day 28)
-  const activeSearch = urlSearch !== null ? urlSearch : searchQuery;
-  const debouncedSearch = useDebounce(activeSearch, 250);
-  const debouncedMaxPrice = useDebounce(maxPrice, 150);
-
+  // Multi-criteria client-side filtering and sorting engine
   const filteredProducts = useMemo(() => {
     return products
       .filter((product) => {
@@ -199,6 +237,10 @@ function ProductsPage({ initialCategory = "Tümü", searchQuery = "", onNavigate
         // Stock filter
         const matchesStock = !onlyInStock || (product.stock && product.stock > 0);
 
+        // Rating filter (Day 29)
+        const matchesRating =
+          minRating === "all" || Number(product.rating || 0) >= Number(minRating);
+
         // Search query filter
         const matchesSearch =
           !debouncedSearch ||
@@ -208,22 +250,63 @@ function ProductsPage({ initialCategory = "Tümü", searchQuery = "", onNavigate
           (product.category &&
             product.category.toLowerCase().includes(debouncedSearch.toLowerCase()));
 
-        return matchesCategory && matchesPrice && matchesStock && matchesSearch;
+        return (
+          matchesCategory &&
+          matchesPrice &&
+          matchesStock &&
+          matchesRating &&
+          matchesSearch
+        );
       })
       .sort((a, b) => {
         if (sortBy === "price-asc") return Number(a.price) - Number(b.price);
         if (sortBy === "price-desc") return Number(b.price) - Number(a.price);
         if (sortBy === "rating-desc") return Number(b.rating) - Number(a.rating);
+        if (sortBy === "popular") return Number(b.reviewCount || 0) - Number(a.reviewCount || 0);
+        if (sortBy === "newest") return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
         return 0; // recommended
       });
-  }, [products, selectedCategory, debouncedMaxPrice, onlyInStock, sortBy, debouncedSearch]);
+  }, [
+    products,
+    selectedCategory,
+    debouncedMaxPrice,
+    onlyInStock,
+    minRating,
+    sortBy,
+    debouncedSearch,
+  ]);
+
+  // Pagination calculation
+  const totalItems = filteredProducts.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / limit));
+  const currentPage = Math.min(page, totalPages);
+
+  const pagedProducts = useMemo(() => {
+    const startIndex = (currentPage - 1) * limit;
+    return filteredProducts.slice(startIndex, startIndex + limit);
+  }, [filteredProducts, currentPage, limit]);
+
+  const handlePageChange = (newPage) => {
+    updateFilter({ page: newPage });
+    window.scrollTo({ top: 320, behavior: "smooth" });
+  };
+
+  const handleLimitChange = (newLimit) => {
+    updateFilter({ limit: newLimit, page: 1 });
+  };
+
+  const hasActiveFilters =
+    selectedCategory !== "Tümü" ||
+    Boolean(activeSearch) ||
+    maxPrice < 5000 ||
+    onlyInStock ||
+    minRating !== "all";
 
   const handleResetFilters = () => {
-    setSelectedCategory("Tümü");
-    setMaxPrice(5000);
-    setOnlyInStock(false);
-    setSortBy("recommended");
     setSearchParams(new URLSearchParams());
+    if (toast?.info) {
+      toast.info("Tüm filtreler temizlendi.");
+    }
   };
 
   return (
@@ -247,7 +330,7 @@ function ProductsPage({ initialCategory = "Tümü", searchQuery = "", onNavigate
                 <Link
                   to="/products"
                   className="breadcrumb-link"
-                  onClick={() => setSelectedCategory("Tümü")}
+                  onClick={() => updateFilter({ category: "Tümü" })}
                 >
                   Ürün Kataloğu
                 </Link>{" "}
@@ -310,14 +393,7 @@ function ProductsPage({ initialCategory = "Tümü", searchQuery = "", onNavigate
                     name="category"
                     checked={selectedCategory === cat}
                     onChange={() => {
-                      setSelectedCategory(cat);
-                      const newParams = new URLSearchParams(searchParams);
-                      if (cat && cat !== "Tümü") {
-                        newParams.set("category", cat);
-                      } else {
-                        newParams.delete("category");
-                      }
-                      setSearchParams(newParams);
+                      updateFilter({ category: cat });
                       if (mobileFilterOpen) setMobileFilterOpen(false);
                     }}
                   />
@@ -340,12 +416,36 @@ function ProductsPage({ initialCategory = "Tümü", searchQuery = "", onNavigate
               max="5000"
               step="100"
               value={maxPrice}
-              onChange={(e) => setMaxPrice(Number(e.target.value))}
+              onChange={(e) => updateFilter({ maxPrice: Number(e.target.value) })}
               className="price-range-slider"
             />
             <div className="price-range-labels">
               <span>500 ₺</span>
               <span>5.000 ₺</span>
+            </div>
+          </div>
+
+          {/* Customer Rating Filter (Day 29) */}
+          <div className="filter-group">
+            <h4 className="filter-group-title">Müşteri Puanı</h4>
+            <div className="filter-options">
+              {[
+                { value: "all", label: "Tüm Puanlar" },
+                { value: "4.5", label: "⭐ 4.5 ve üzeri" },
+                { value: "4.0", label: "⭐ 4.0 ve üzeri" },
+                { value: "3.0", label: "⭐ 3.0 ve üzeri" },
+              ].map((r) => (
+                <label key={r.value} className="filter-radio-label">
+                  <input
+                    type="radio"
+                    name="rating"
+                    checked={minRating === r.value}
+                    onChange={() => updateFilter({ rating: r.value })}
+                  />
+                  <span className="radio-custom" />
+                  <span className="label-text">{r.label}</span>
+                </label>
+              ))}
             </div>
           </div>
 
@@ -356,7 +456,7 @@ function ProductsPage({ initialCategory = "Tümü", searchQuery = "", onNavigate
               <input
                 type="checkbox"
                 checked={onlyInStock}
-                onChange={(e) => setOnlyInStock(e.target.checked)}
+                onChange={(e) => updateFilter({ inStock: e.target.checked ? "true" : null })}
               />
               <span className="checkbox-custom" />
               <span className="label-text">Yalnızca Stoktakiler</span>
@@ -375,10 +475,10 @@ function ProductsPage({ initialCategory = "Tümü", searchQuery = "", onNavigate
           {/* Top Bar (Count & Sort) */}
           <div className="products-topbar">
             <div className="products-count">
-              Toplam <strong>{filteredProducts.length}</strong> ürün listeleniyor
-              {searchQuery && (
+              Toplam <strong>{totalItems}</strong> ürün listeleniyor
+              {activeSearch && (
                 <span className="search-active-pill">
-                  "{searchQuery}" için sonuçlar
+                  "{activeSearch}" için sonuçlar
                 </span>
               )}
             </div>
@@ -388,16 +488,108 @@ function ProductsPage({ initialCategory = "Tümü", searchQuery = "", onNavigate
               <select
                 id="sort-select"
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
+                onChange={(e) => updateFilter({ sortBy: e.target.value })}
                 className="sort-select"
               >
                 <option value="recommended">Önerilen Sıralama</option>
                 <option value="price-asc">Fiyat: Düşükten Yükseğe</option>
                 <option value="price-desc">Fiyat: Yüksekten Düşüğe</option>
                 <option value="rating-desc">En Yüksek Puanlılar</option>
+                <option value="newest">En Yeni Ürünler</option>
+                <option value="popular">En Çok Değerlendirilenler</option>
               </select>
             </div>
           </div>
+
+          {/* Active Filter Chips Bar (Day 29) */}
+          {hasActiveFilters && (
+            <div className="active-filters-bar">
+              <span className="active-filters-label">Aktif Filtreler:</span>
+
+              {selectedCategory !== "Tümü" && (
+                <span className="active-filter-chip">
+                  Kategori: {selectedCategory}
+                  <button
+                    type="button"
+                    className="chip-remove-btn"
+                    onClick={() => updateFilter({ category: "Tümü" })}
+                    title="Kategoriyi kaldır"
+                    aria-label="Kategoriyi kaldır"
+                  >
+                    ✕
+                  </button>
+                </span>
+              )}
+
+              {activeSearch && (
+                <span className="active-filter-chip">
+                  Arama: "{activeSearch}"
+                  <button
+                    type="button"
+                    className="chip-remove-btn"
+                    onClick={() => updateFilter({ search: "" })}
+                    title="Aramayı temizle"
+                    aria-label="Aramayı temizle"
+                  >
+                    ✕
+                  </button>
+                </span>
+              )}
+
+              {maxPrice < 5000 && (
+                <span className="active-filter-chip">
+                  Maks: {formatCurrency(maxPrice)}
+                  <button
+                    type="button"
+                    className="chip-remove-btn"
+                    onClick={() => updateFilter({ maxPrice: null })}
+                    title="Fiyat filtresini kaldır"
+                    aria-label="Fiyat filtresini kaldır"
+                  >
+                    ✕
+                  </button>
+                </span>
+              )}
+
+              {minRating !== "all" && (
+                <span className="active-filter-chip">
+                  ⭐ {minRating}+ Puan
+                  <button
+                    type="button"
+                    className="chip-remove-btn"
+                    onClick={() => updateFilter({ rating: "all" })}
+                    title="Puan filtresini kaldır"
+                    aria-label="Puan filtresini kaldır"
+                  >
+                    ✕
+                  </button>
+                </span>
+              )}
+
+              {onlyInStock && (
+                <span className="active-filter-chip">
+                  Yalnızca Stokta
+                  <button
+                    type="button"
+                    className="chip-remove-btn"
+                    onClick={() => updateFilter({ inStock: null })}
+                    title="Stok filtresini kaldır"
+                    aria-label="Stok filtresini kaldır"
+                  >
+                    ✕
+                  </button>
+                </span>
+              )}
+
+              <button
+                type="button"
+                className="clear-all-chips-btn"
+                onClick={handleResetFilters}
+              >
+                Tümünü Temizle
+              </button>
+            </div>
+          )}
 
           {/* Loading Skeleton State */}
           {isLoading ? (
@@ -411,17 +603,29 @@ function ProductsPage({ initialCategory = "Tümü", searchQuery = "", onNavigate
                 </div>
               ))}
             </div>
-          ) : filteredProducts.length > 0 ? (
+          ) : pagedProducts.length > 0 ? (
             /* Product Grid */
-            <div className="products-grid">
-              {filteredProducts.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  onViewDetail={(prod) => setSelectedProduct(prod)}
-                />
-              ))}
-            </div>
+            <>
+              <div className="products-grid">
+                {pagedProducts.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    onViewDetail={(prod) => setSelectedProduct(prod)}
+                  />
+                ))}
+              </div>
+
+              {/* Standardized Pagination Controls (Day 29) */}
+              <Pagination
+                page={currentPage}
+                totalPages={totalPages}
+                totalItems={totalItems}
+                limit={limit}
+                onPageChange={handlePageChange}
+                onLimitChange={handleLimitChange}
+              />
+            </>
           ) : (
             /* Empty State */
             <div className="empty-state">

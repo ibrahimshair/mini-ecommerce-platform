@@ -4,6 +4,7 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import AuthModal from "./components/AuthModal";
 import CartToast from "./components/CartToast";
+import ToastContainer from "./components/ToastContainer";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { useAuth } from "./context/AuthContext";
@@ -385,6 +386,9 @@ function App() {
       </main>
 
       <Footer />
+
+      {/* Global Toast Container */}
+      <ToastContainer />
 
       {/* Global Shopping Cart Toast Notification */}
       <CartToast />
