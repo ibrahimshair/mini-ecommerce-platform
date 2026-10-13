@@ -565,10 +565,62 @@ function OrdersPage() {
                     </p>
                     <p>
                       <strong>Ödeme Durumu:</strong>{" "}
-                      <span className="payment-paid-badge">
-                        {selectedOrder.paymentStatus === "paid" ? "Ödendi ✓" : "Beklemede"}
-                      </span>
+                      {(() => {
+                        const isCod = selectedOrder.paymentMethod === "cash_on_delivery";
+                        const isTransfer = selectedOrder.paymentMethod === "bank_transfer";
+                        const isDelivered = selectedOrder.status === "delivered";
+                        const isPaid = selectedOrder.paymentStatus === "paid";
+
+                        if (isCod) {
+                          if (isDelivered || (isPaid && isDelivered)) {
+                            return (
+                              <span className="payment-paid-badge">
+                                Kapıda Tahsil Edildi ✓
+                              </span>
+                            );
+                          }
+                          return (
+                            <span className="payment-pending-badge">
+                              Kapıda Tahsil Edilecek (Ödenmedi)
+                            </span>
+                          );
+                        }
+
+                        if (isTransfer) {
+                          if (isPaid) {
+                            return (
+                              <span className="payment-paid-badge">
+                                Havale Onaylandı ✓
+                              </span>
+                            );
+                          }
+                          return (
+                            <span className="payment-pending-badge">
+                              Havale Bekleniyor
+                            </span>
+                          );
+                        }
+
+                        if (isPaid) {
+                          return (
+                            <span className="payment-paid-badge">
+                              Ödendi ✓
+                            </span>
+                          );
+                        }
+
+                        return (
+                          <span className="payment-pending-badge">
+                            Ödeme Bekleniyor
+                          </span>
+                        );
+                      })()}
                     </p>
+                    {selectedOrder.paymentMethod === "cash_on_delivery" && selectedOrder.status !== "delivered" && (
+                      <p className="oib-cod-notice">
+                        ℹ️ Sipariş tutarı teslimat sırasında kapıda kuryeye nakit veya kart ile ödenecektir.
+                      </p>
+                    )}
                     <p>
                       <strong>Sipariş Tarihi:</strong> {formatDate(selectedOrder.createdAt)}
                     </p>

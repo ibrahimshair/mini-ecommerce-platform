@@ -1035,9 +1035,21 @@ function AdminPage() {
                 <div style={{ fontSize: "1.15rem", fontWeight: 800, color: "#1e293b" }}>
                   Genel Toplam: {formatCurrency(selectedOrderDetail.totalPrice)}
                 </div>
-                <span style={{ fontSize: "0.8rem", color: "#10b981", fontWeight: 700 }}>
-                  ✓ Ödeme Alındı ({selectedOrderDetail.paymentMethod || "Kredi Kartı"})
-                </span>
+                {selectedOrderDetail.paymentMethod === "cash_on_delivery" ? (
+                  <span style={{ fontSize: "0.82rem", color: selectedOrderDetail.status === "delivered" ? "#10b981" : "#d97706", fontWeight: 700 }}>
+                    {selectedOrderDetail.status === "delivered"
+                      ? "✓ Kapıda Tahsil Edildi (Nakit/Kart)"
+                      : "⏳ Kapıda Tahsil Edilecek (Teslimatta Ödeme)"}
+                  </span>
+                ) : selectedOrderDetail.paymentMethod === "bank_transfer" ? (
+                  <span style={{ fontSize: "0.82rem", color: selectedOrderDetail.paymentStatus === "paid" ? "#10b981" : "#d97706", fontWeight: 700 }}>
+                    {selectedOrderDetail.paymentStatus === "paid" ? "✓ Havale Onaylandı" : "⏳ Havale Bekleniyor"}
+                  </span>
+                ) : (
+                  <span style={{ fontSize: "0.82rem", color: "#10b981", fontWeight: 700 }}>
+                    ✓ Ödeme Alındı ({selectedOrderDetail.paymentMethod === "credit_card" ? "Kredi Kartı" : selectedOrderDetail.paymentMethod || "Kredi Kartı"})
+                  </span>
+                )}
               </div>
             </div>
 
