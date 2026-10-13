@@ -154,7 +154,13 @@ const OrderController = {
 
       let createdOrder = null;
 
-      // 5. Try creating order in PostgreSQL
+      // 5. Determine initial payment status based on payment method
+      const initialPaymentStatus =
+        paymentMethod === "cash_on_delivery" || paymentMethod === "bank_transfer"
+          ? "pending"
+          : "paid";
+
+      // 6. Try creating order in PostgreSQL
       try {
         createdOrder = await Order.create(
           {
@@ -164,7 +170,7 @@ const OrderController = {
             status: "pending",
             shippingAddress,
             paymentMethod,
-            paymentStatus: "paid",
+            paymentStatus: initialPaymentStatus,
             notes: notes ? String(notes).trim() : null,
           },
           validatedItems
@@ -184,7 +190,7 @@ const OrderController = {
               ? shippingAddress
               : { addressLine: shippingAddress },
           paymentMethod,
-          paymentStatus: "paid",
+          paymentStatus: initialPaymentStatus,
           notes: notes ? String(notes).trim() : null,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
@@ -597,16 +603,23 @@ const OrderController = {
       }
 
       let updatedOrder = null;
+      const nextPaymentStatus =
+        status === "delivered" && order.paymentMethod === "cash_on_delivery"
+          ? "paid"
+          : order.paymentStatus || (order.paymentMethod === "credit_card" ? "paid" : "pending");
+
       try {
-        updatedOrder = await Order.updateStatus(order.id, status);
+        updatedOrder = await Order.updateStatus(order.id, status, nextPaymentStatus);
       } catch (dbErr) {
         order.status = status;
+        order.paymentStatus = nextPaymentStatus;
         order.updatedAt = new Date().toISOString();
         updatedOrder = order;
       }
 
       if (order) {
         order.status = status;
+        order.paymentStatus = nextPaymentStatus;
         order.updatedAt = new Date().toISOString();
       }
 

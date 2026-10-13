@@ -16,7 +16,7 @@ const Order = {
       status = "pending",
       shippingAddress,
       paymentMethod = "credit_card",
-      paymentStatus = "paid",
+      paymentStatus = (orderData.paymentMethod === "cash_on_delivery" || orderData.paymentMethod === "bank_transfer") ? "pending" : "paid",
       notes = null,
     } = orderData;
 
@@ -198,18 +198,38 @@ const Order = {
   /**
    * Updates an order status (e.g. pending -> processing -> shipped -> delivered, or cancelled).
    */
-  async updateStatus(orderId, status) {
-    const text = `
-      UPDATE orders
-      SET status = $1, updated_at = NOW()
-      WHERE id = $2
-      RETURNING 
-        id,
-        order_number AS "orderNumber",
-        status,
-        updated_at AS "updatedAt";
-    `;
-    const res = await query(text, [status, orderId]);
+  async updateStatus(orderId, status, paymentStatus = null) {
+    let text;
+    let params;
+
+    if (paymentStatus) {
+      text = `
+        UPDATE orders
+        SET status = $1, payment_status = $2, updated_at = NOW()
+        WHERE id = $3
+        RETURNING 
+          id,
+          order_number AS "orderNumber",
+          status,
+          payment_status AS "paymentStatus",
+          updated_at AS "updatedAt";
+      `;
+      params = [status, paymentStatus, orderId];
+    } else {
+      text = `
+        UPDATE orders
+        SET status = $1, updated_at = NOW()
+        WHERE id = $2
+        RETURNING 
+          id,
+          order_number AS "orderNumber",
+          status,
+          payment_status AS "paymentStatus",
+          updated_at AS "updatedAt";
+      `;
+      params = [status, orderId];
+    }
+    const res = await query(text, params);
     return res.rows[0] || null;
   },
 

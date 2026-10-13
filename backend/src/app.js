@@ -9,6 +9,10 @@ const {
   sanitizeInput,
   globalRateLimiter,
 } = require("./middleware/security.middleware");
+const {
+  httpCacheMiddleware,
+  compressionMiddleware,
+} = require("./middleware/performance.middleware");
 
 const app = express();
 
@@ -48,7 +52,11 @@ app.get("/", (req, res) => {
   });
 });
 
-// 5. API Routes with Global Rate Limiting
+// 5. Performance Optimizations (HTTP Caching & Native Gzip Compression)
+app.use(compressionMiddleware);
+app.use(httpCacheMiddleware);
+
+// 6. API Routes with Global Rate Limiting
 app.use("/api", globalRateLimiter, apiRoutes);
 
 // Fallback 404 & Central Error Handling

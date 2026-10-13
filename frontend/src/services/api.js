@@ -15,6 +15,12 @@ class ApiService {
     this.responseInterceptors = [];
     this.unauthorizedHandlers = new Set();
 
+    // In-Memory Query & Data Cache Engine (Day 28 Performance Optimization)
+    this.cache = new Map();
+    this.cacheDefaultTtl = 45000; // 45s default TTL
+    this.cacheHits = 0;
+    this.cacheMisses = 0;
+
     // Register default built-in JWT Authorization and Guest Session request interceptor
     this.addRequestInterceptor(async (config) => {
       const token = this.getToken();
@@ -409,28 +415,151 @@ class ApiService {
     }
   }
 
-  get(endpoint, options = {}) {
-    return this.request(endpoint, { method: "GET", ...options });
+  // Query Cache & Mutation Invalidation Methods
+  invalidateCache(pattern = null) {
+    if (!pattern) {
+      const count = this.cache.size;
+      this.cache.clear();
+      return count;
+    }
+    let count = 0;
+    for (const key of this.cache.keys()) {
+      if (typeof pattern === "string" && key.includes(pattern)) {
+        this.cache.delete(key);
+        count++;
+      } else if (pattern instanceof RegExp && pattern.test(key)) {
+        this.cache.delete(key);
+        count++;
+      }
+    }
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("api:cache-invalidate", {
+          detail: { pattern, invalidatedCount: count },
+        })
+      );
+    }
+    return count;
   }
 
-  post(endpoint, body, options = {}) {
-    return this.request(endpoint, {
+  clearCache() {
+    this.cache.clear();
+  }
+
+  getCacheStats() {
+    return {
+      size: this.cache.size,
+      hits: this.cacheHits,
+      misses: this.cacheMisses,
+      hitRate:
+        this.cacheHits + this.cacheMisses > 0
+          ? `${Math.round((this.cacheHits / (this.cacheHits + this.cacheMisses)) * 100)}%`
+          : "0%",
+    };
+  }
+
+  autoInvalidateCache(endpoint) {
+    if (!endpoint) return;
+    if (endpoint.includes("/products")) this.invalidateCache("/products");
+    if (endpoint.includes("/categories")) this.invalidateCache("/categories");
+    if (endpoint.includes("/cart")) this.invalidateCache("/cart");
+    if (endpoint.includes("/orders")) this.invalidateCache("/orders");
+    if (endpoint.includes("/admin")) {
+      this.invalidateCache("/admin");
+      this.invalidateCache("/orders");
+      this.invalidateCache("/products");
+    }
+    if (endpoint.includes("/auth") || endpoint.includes("/profile")) {
+      this.invalidateCache("/auth");
+    }
+  }
+
+  get(endpoint, options = {}) {
+    const useCache = options.cache !== false && !options.skipCache;
+    const ttl = options.cacheTtl || this.cacheDefaultTtl;
+    const cacheKey = `GET:${endpoint}`;
+
+    if (useCache && this.cache.has(cacheKey)) {
+      const entry = this.cache.get(cacheKey);
+      const isFresh = Date.now() < entry.expiresAt;
+
+      if (isFresh) {
+        this.cacheHits++;
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(
+            new CustomEvent("api:cache-hit", { detail: { endpoint, fresh: true } })
+          );
+        }
+        return Promise.resolve(entry.data);
+      }
+
+      // SWR (Stale-While-Revalidate) mode
+      if (options.swr) {
+        this.cacheHits++;
+        this.request(endpoint, { method: "GET", ...options })
+          .then((freshData) => {
+            this.cache.set(cacheKey, {
+              data: freshData,
+              expiresAt: Date.now() + ttl,
+              cachedAt: Date.now(),
+            });
+          })
+          .catch(() => {});
+        return Promise.resolve(entry.data);
+      }
+    }
+
+    this.cacheMisses++;
+    return this.request(endpoint, { method: "GET", ...options }).then((data) => {
+      if (useCache && data) {
+        this.cache.set(cacheKey, {
+          data,
+          expiresAt: Date.now() + ttl,
+          cachedAt: Date.now(),
+        });
+      }
+      return data;
+    });
+  }
+
+  async post(endpoint, body, options = {}) {
+    const res = await this.request(endpoint, {
       method: "POST",
       body: JSON.stringify(body),
       ...options,
     });
+    this.autoInvalidateCache(endpoint);
+    return res;
   }
 
-  put(endpoint, body, options = {}) {
-    return this.request(endpoint, {
+  async put(endpoint, body, options = {}) {
+    const res = await this.request(endpoint, {
       method: "PUT",
       body: JSON.stringify(body),
       ...options,
     });
+    this.autoInvalidateCache(endpoint);
+    return res;
   }
 
-  delete(endpoint, options = {}) {
-    return this.request(endpoint, { method: "DELETE", ...options });
+  async patch(endpoint, body = {}, options = {}) {
+    const res = await this.request(endpoint, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+      ...options,
+    });
+    this.autoInvalidateCache(endpoint);
+    return res;
+  }
+
+  async delete(endpoint, options = {}) {
+    const res = await this.request(endpoint, { method: "DELETE", ...options });
+    this.autoInvalidateCache(endpoint);
+    return res;
+  }
+
+  async getPerformanceMetrics() {
+    return this.get("/health/performance", { cache: false });
   }
 
   // Health check helper

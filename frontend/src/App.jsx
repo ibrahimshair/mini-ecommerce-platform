@@ -1,17 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { Routes, Route, useSearchParams, useLocation } from "react-router-dom";
 import Navbar from "./components/Navbar";
-import HomePage from "./pages/HomePage";
-import ProductsPage from "./pages/ProductsPage";
-import ProductDetailPage from "./pages/ProductDetailPage";
-import ProfilePage from "./pages/ProfilePage";
-import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
-import CartPage from "./pages/CartPage";
-import CheckoutPage from "./pages/CheckoutPage";
-import OrdersPage from "./pages/OrdersPage";
-import AdminPage from "./pages/AdminPage";
-import NotFoundPage from "./pages/NotFoundPage";
 import Footer from "./components/Footer";
 import AuthModal from "./components/AuthModal";
 import CartToast from "./components/CartToast";
@@ -19,12 +8,71 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { useAuth } from "./context/AuthContext";
 import { useNetworkStatus } from "./hooks/useNetworkStatus";
+import { useDataSync } from "./hooks/useDataSync";
+
+// Lazy-loaded pages for optimized bundle splitting & performance (Day 28)
+const HomePage = lazy(() => import("./pages/HomePage"));
+const ProductsPage = lazy(() => import("./pages/ProductsPage"));
+const ProductDetailPage = lazy(() => import("./pages/ProductDetailPage"));
+const ProfilePage = lazy(() => import("./pages/ProfilePage"));
+const LoginPage = lazy(() => import("./pages/LoginPage"));
+const RegisterPage = lazy(() => import("./pages/RegisterPage"));
+// Dynamic route imports for code splitting & bundle performance (Milestone 6 Day 28)
+// import CheckoutPage from "./pages/CheckoutPage";
+// import OrdersPage from "./pages/OrdersPage";
+const CartPage = lazy(() => import("./pages/CartPage"));
+const CheckoutPage = lazy(() => import("./pages/CheckoutPage"));
+const OrdersPage = lazy(() => import("./pages/OrdersPage"));
+const AdminPage = lazy(() => import("./pages/AdminPage"));
+const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
+
+// Route suspense loader
+function RouteLoadingFallback() {
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: "50vh",
+        gap: "1rem",
+        color: "var(--text-secondary, #64748b)",
+      }}
+    >
+      <div
+        style={{
+          width: "40px",
+          height: "40px",
+          border: "3px solid #e2e8f0",
+          borderTopColor: "var(--primary, #4f46e5)",
+          borderRadius: "50%",
+          animation: "routeSpin 0.75s linear infinite",
+        }}
+      />
+      <span style={{ fontSize: "0.875rem", fontWeight: 600 }}>Sayfa yükleniyor...</span>
+      <style>{`
+        @keyframes routeSpin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
+    </div>
+  );
+}
 
 function App() {
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
   const { currentUser, logout, updateUser } = useAuth();
   const { isOnline, wasOffline, dismissReconnected } = useNetworkStatus();
+
+  // Day 28: Automatic data synchronization on window focus and network reconnection
+  useDataSync(() => {
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("app:sync-data"));
+    }
+  });
 
   // Authentication modal state
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -74,7 +122,7 @@ function App() {
 
   // Scroll to top on route change
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo(0, 0);
   }, [location.pathname]);
 
   const handleOpenAuth = (mode = "register") => {
@@ -264,73 +312,75 @@ function App() {
 
       <main className="main-content">
         <ErrorBoundary>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/products" element={<ProductsPage />} />
-            <Route path="/products/:id" element={<ProductDetailPage />} />
-            <Route
-              path="/login"
-              element={
-                <LoginPage
-                  onAuthSuccess={(user) => {
-                    updateUser(user);
-                  }}
-                />
-              }
-            />
-            <Route
-              path="/register"
-              element={
-                <RegisterPage
-                  onAuthSuccess={(user) => {
-                    updateUser(user);
-                  }}
-                />
-              }
-            />
-            <Route
-              path="/profile"
-              element={
-                <ProtectedRoute>
-                  <ProfilePage currentUser={currentUser} onLogout={logout} />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="/cart" element={<CartPage />} />
-            <Route
-              path="/checkout"
-              element={
-                <ProtectedRoute>
-                  <CheckoutPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/orders"
-              element={
-                <ProtectedRoute>
-                  <OrdersPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/orders/:id"
-              element={
-                <ProtectedRoute>
-                  <OrdersPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin"
-              element={
-                <ProtectedRoute allowedRoles={["admin"]}>
-                  <AdminPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="*" element={<NotFoundPage />} />
-          </Routes>
+          <Suspense fallback={<RouteLoadingFallback />}>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/products" element={<ProductsPage />} />
+              <Route path="/products/:id" element={<ProductDetailPage />} />
+              <Route
+                path="/login"
+                element={
+                  <LoginPage
+                    onAuthSuccess={(user) => {
+                      updateUser(user);
+                    }}
+                  />
+                }
+              />
+              <Route
+                path="/register"
+                element={
+                  <RegisterPage
+                    onAuthSuccess={(user) => {
+                      updateUser(user);
+                    }}
+                  />
+                }
+              />
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <ProfilePage currentUser={currentUser} onLogout={logout} />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="/cart" element={<CartPage />} />
+              <Route
+                path="/checkout"
+                element={
+                  <ProtectedRoute>
+                    <CheckoutPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/orders"
+                element={
+                  <ProtectedRoute>
+                    <OrdersPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/orders/:id"
+                element={
+                  <ProtectedRoute>
+                    <OrdersPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute allowedRoles={["admin"]}>
+                    <AdminPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="*" element={<NotFoundPage />} />
+            </Routes>
+          </Suspense>
         </ErrorBoundary>
       </main>
 

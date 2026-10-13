@@ -283,7 +283,22 @@ function CheckoutPage() {
                 <p className="succ-price-highlight">
                   {formatCurrency(createdOrder.totalPrice)}
                 </p>
-                <span className="succ-status-pill">Durum: Hazırlanıyor</span>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem", marginTop: "0.35rem" }}>
+                  <span className="succ-status-pill">Durum: Hazırlanıyor</span>
+                  {createdOrder.paymentMethod === "cash_on_delivery" ? (
+                    <span style={{ fontSize: "0.82rem", color: "#b45309", fontWeight: 600 }}>
+                      💵 Kapıda Ödeme: Tutar teslimat sırasında kuryeye ödenecektir (Henüz ödenmedi).
+                    </span>
+                  ) : createdOrder.paymentMethod === "bank_transfer" ? (
+                    <span style={{ fontSize: "0.82rem", color: "#b45309", fontWeight: 600 }}>
+                      🏦 Havale/EFT: Lütfen sipariş numaranızı belirterek banka transferinizi yapınız.
+                    </span>
+                  ) : (
+                    <span style={{ fontSize: "0.82rem", color: "#047857", fontWeight: 600 }}>
+                      ✓ Kredi kartı ile başarıyla ödendi.
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
 

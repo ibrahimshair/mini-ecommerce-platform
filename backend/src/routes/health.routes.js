@@ -3,6 +3,7 @@ const {
   getHealth,
   getSecurityHealth,
   getResilienceHealth,
+  getPerformanceHealth,
 } = require("../controllers/health.controller");
 
 const router = express.Router();
@@ -27,5 +28,12 @@ router.get("/security", getSecurityHealth);
  * @access  Public
  */
 router.get("/resilience", getResilienceHealth);
+
+/**
+ * @route   GET /api/health/performance
+ * @desc    Get performance optimizations, HTTP caching and sync metrics report
+ * @access  Public
+ */
+router.get("/performance", getPerformanceHealth);
 
 module.exports = router;
