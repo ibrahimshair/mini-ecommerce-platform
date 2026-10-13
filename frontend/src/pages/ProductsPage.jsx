@@ -129,12 +129,16 @@ function ProductsPage({ initialCategory = "Tümü", searchQuery = "", onNavigate
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
-  // Sync initial category if URL or prop changes
+  // Sync category if URL parameter changes
   useEffect(() => {
     if (urlCategory) {
-      setSelectedCategory(urlCategory);
-    } else if (initialCategory && !urlCategory) {
-      setSelectedCategory(initialCategory);
+      if (urlCategory === "Moda") {
+        setSelectedCategory("Giyim & Moda");
+      } else {
+        setSelectedCategory(urlCategory);
+      }
+    } else {
+      setSelectedCategory(initialCategory || "Tümü");
     }
   }, [urlCategory, initialCategory]);
 
@@ -232,11 +236,24 @@ function ProductsPage({ initialCategory = "Tümü", searchQuery = "", onNavigate
             >
               Ana Sayfa
             </Link>{" "}
-            &gt; <span>Ürün Kataloğu</span>
-            {selectedCategory !== "Tümü" && <span> &gt; {selectedCategory}</span>}
+            &gt;{" "}
+            {selectedCategory === "Tümü" ? (
+              <span>Ürün Kataloğu</span>
+            ) : (
+              <>
+                <Link
+                  to="/products"
+                  className="breadcrumb-link"
+                  onClick={() => setSelectedCategory("Tümü")}
+                >
+                  Ürün Kataloğu
+                </Link>{" "}
+                &gt; <span>{selectedCategory}</span>
+              </>
+            )}
           </div>
           <h1 className="banner-title">
-            {selectedCategory === "Tümü" ? "Tüm Ürünler" : selectedCategory}
+            {selectedCategory === "Tümü" ? "Tüm Ürünler" : `${selectedCategory} Koleksiyonu`}
           </h1>
           <p className="banner-subtitle">
             En güncel teknoloji, spor, giyim ve aksesuar koleksiyonlarını avantajlı fiyatlarla keşfedin.

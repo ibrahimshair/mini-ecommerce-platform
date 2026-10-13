@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, NavLink, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, NavLink, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import "./Navbar.css";
@@ -10,9 +10,23 @@ function Navbar({ currentUser: propUser, onOpenAuth, onLogout: propLogout }) {
   const currentUser = propUser !== undefined ? propUser : authUser;
   const onLogout = propLogout || authLogout;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const [searchValue, setSearchValue] = useState(searchParams.get("search") || "");
   const navigate = useNavigate();
+
+  const activeCategory = searchParams.get("category");
+  const isProducts = location.pathname === "/products";
+
+  // Catalog is active only when on /products with no specific category filter
+  const isCatalogActive = isProducts && (!activeCategory || activeCategory === "Tümü");
+
+  // Elektronik is active only when category is 'Elektronik'
+  const isElectronicsActive = isProducts && activeCategory === "Elektronik";
+
+  // Moda is active only when category is 'Giyim & Moda' or 'Moda'
+  const isFashionActive =
+    isProducts && (activeCategory === "Giyim & Moda" || activeCategory === "Moda");
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -84,24 +98,23 @@ function Navbar({ currentUser: propUser, onOpenAuth, onLogout: propLogout }) {
           >
             Ana Sayfa
           </NavLink>
-          <NavLink
+          <Link
             to="/products"
-            end
-            className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
+            className={`nav-link ${isCatalogActive ? "active" : ""}`}
             onClick={() => setIsMobileMenuOpen(false)}
           >
             Ürün Kataloğu
-          </NavLink>
+          </Link>
           <Link
             to="/products?category=Elektronik"
-            className="nav-link"
+            className={`nav-link ${isElectronicsActive ? "active" : ""}`}
             onClick={() => setIsMobileMenuOpen(false)}
           >
             Elektronik
           </Link>
           <Link
             to="/products?category=Giyim%20%26%20Moda"
-            className="nav-link"
+            className={`nav-link ${isFashionActive ? "active" : ""}`}
             onClick={() => setIsMobileMenuOpen(false)}
           >
             Moda
