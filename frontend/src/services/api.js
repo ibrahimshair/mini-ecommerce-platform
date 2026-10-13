@@ -169,76 +169,243 @@ class ApiService {
     }
   }
 
-  // Core Request Method with Interceptor Chain Execution
+  /**
+   * Helper to determine if an error or HTTP status code is retryable
+   */
+  isRetryable(error, status) {
+    // Transient HTTP server status codes
+    if (status === 502 || status === 503 || status === 504) {
+      return true;
+    }
+    // Network failures (no response, connection refused, offline)
+    if (error && (error.isNetworkError || !status || error.name === "TypeError" || error.message?.includes("fetch"))) {
+      return true;
+    }
+    // Request timeout (if not manually aborted by client)
+    if (error && error.isTimeout) {
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Translates error details into user-friendly Turkish messages
+   */
+  formatErrorMessage(error) {
+    if (!error) return "Bilinmeyen bir hata oluştu.";
+    if (error.data?.message) return error.data.message;
+    if (error.message && !error.message.startsWith("HTTP error!")) return error.message;
+
+    switch (error.status) {
+      case 400:
+        return "Gönderilen istek geçersiz veya eksik bilgi içeriyor.";
+      case 401:
+        return "Oturum süreniz doldu veya giriş yapmanız gerekiyor.";
+      case 403:
+        return "Bu işlem için yetkiniz bulunmamaktadır.";
+      case 404:
+        return "Aradığınız kaynak bulunamadı.";
+      case 409:
+        return "İşlem sırasında bir veri çakışması meydana geldi.";
+      case 422:
+        return "Doğrulama hatası. Lütfen girdiğiniz bilgileri kontrol edin.";
+      case 429:
+        return "Çok fazla istek gönderildi. Lütfen bir süre bekleyip tekrar deneyin.";
+      case 500:
+        return "Sunucu tarafında beklenmeyen bir hata oluştu.";
+      case 502:
+      case 503:
+      case 504:
+        return "Sunucu geçici olarak yanıt veremiyor. Lütfen tekrar deneyin.";
+      default:
+        if (error.isTimeout) return "İstek zaman aşımına uğradı. Sunucu yanıt vermiyor.";
+        if (error.isNetworkError) return "Sunucuya ulaşılamıyor. Lütfen internet bağlantınızı kontrol edin.";
+        return error.message || "Beklenmeyen bir hata oluştu.";
+    }
+  }
+
+  /**
+   * Proactively checks backend API availability
+   */
+  async checkHealth() {
+    try {
+      return await this.get("/health", { retries: 0, timeout: 3500 });
+    } catch {
+      return null;
+    }
+  }
+
+  // Core Request Method with Interceptor Chain, Exponential Backoff & Timeout Handling
   async request(endpoint, options = {}) {
     const url = `${this.baseUrl}${endpoint}`;
+    const maxRetries = options.retries !== undefined ? options.retries : 2;
+    const baseRetryDelay = options.retryDelay !== undefined ? options.retryDelay : 500;
+    const timeoutMs = options.timeout !== undefined ? options.timeout : 10000;
 
-    let config = {
-      ...options,
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-        ...options.headers,
-      },
-    };
+    let attempt = 0;
 
-    // Execute Request Interceptors
-    for (const interceptor of this.requestInterceptors) {
+    while (true) {
+      // Setup timeout controller if no custom signal is provided
+      let controller = null;
+      let timeoutId = null;
+      let effectiveSignal = options.signal;
+
+      if (!effectiveSignal && timeoutMs > 0) {
+        controller = new AbortController();
+        effectiveSignal = controller.signal;
+        timeoutId = setTimeout(() => {
+          controller.abort(new Error(`İstek zaman aşımına uğradı (${timeoutMs}ms)`));
+        }, timeoutMs);
+      }
+
+      let config = {
+        ...options,
+        signal: effectiveSignal,
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          ...options.headers,
+        },
+      };
+
+      // Execute Request Interceptors
+      for (const interceptor of this.requestInterceptors) {
+        try {
+          config = await interceptor(config);
+        } catch (interceptErr) {
+          if (timeoutId) clearTimeout(timeoutId);
+          return Promise.reject(interceptErr);
+        }
+      }
+
       try {
-        config = await interceptor(config);
-      } catch (interceptErr) {
-        return Promise.reject(interceptErr);
-      }
-    }
+        const response = await fetch(url, config);
+        if (timeoutId) clearTimeout(timeoutId);
 
-    try {
-      const response = await fetch(url, config);
+        // Handle non-JSON response safely
+        let data = null;
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          data = await response.json();
+        } else {
+          const text = await response.text();
+          data = text ? { message: text } : {};
+        }
 
-      // Handle non-JSON response safely
-      let data = null;
-      const contentType = response.headers.get("content-type");
-      if (contentType && contentType.includes("application/json")) {
-        data = await response.json();
-      } else {
-        const text = await response.text();
-        data = text ? { message: text } : {};
-      }
+        if (!response.ok) {
+          const error = new Error(data?.message || `HTTP error! Status: ${response.status}`);
+          error.status = response.status;
+          error.data = data;
+          error.response = response;
+          error.retryAttempts = attempt;
+          error.isNetworkError = false;
+          error.isTimeout = false;
+          error.friendlyMessage = this.formatErrorMessage(error);
 
-      if (!response.ok) {
-        const error = new Error(data.message || `HTTP error! Status: ${response.status}`);
-        error.status = response.status;
-        error.data = data;
-        error.response = response;
-
-        // Run through rejection interceptors
-        for (const { onRejected } of this.responseInterceptors) {
-          if (typeof onRejected === "function") {
-            try {
-              await onRejected(error);
-            } catch (handledErr) {
-              return Promise.reject(handledErr);
+          // Check if this error is retryable and retry quota remains
+          if (attempt < maxRetries && this.isRetryable(error, response.status)) {
+            attempt++;
+            const backoff = baseRetryDelay * Math.pow(2, attempt - 1) + Math.floor(Math.random() * 50);
+            console.warn(
+              `[API Resilience] Retrying ${endpoint} (attempt ${attempt}/${maxRetries}) in ${backoff}ms due to HTTP ${response.status}...`
+            );
+            if (typeof window !== "undefined") {
+              window.dispatchEvent(
+                new CustomEvent("api:retry", {
+                  detail: {
+                    endpoint,
+                    attempt,
+                    maxRetries,
+                    delay: backoff,
+                    status: response.status,
+                  },
+                })
+              );
             }
+            await new Promise((resolve) => setTimeout(resolve, backoff));
+            continue; // Retry loop
+          }
+
+          // Run through rejection interceptors
+          for (const { onRejected } of this.responseInterceptors) {
+            if (typeof onRejected === "function") {
+              try {
+                await onRejected(error);
+              } catch (handledErr) {
+                return Promise.reject(handledErr);
+              }
+            }
+          }
+
+          throw error;
+        }
+
+        // Run through success interceptors
+        let finalData = data;
+        for (const { onFulfilled } of this.responseInterceptors) {
+          if (typeof onFulfilled === "function") {
+            finalData = await onFulfilled(finalData);
           }
         }
 
+        return finalData;
+      } catch (error) {
+        if (timeoutId) clearTimeout(timeoutId);
+
+        // Classify network and timeout errors
+        const isTimeout =
+          error.name === "AbortError" ||
+          (error.message && error.message.includes("zaman aşımı"));
+        const isNetwork =
+          !error.status &&
+          (error.name === "TypeError" ||
+            isTimeout ||
+            (typeof navigator !== "undefined" && !navigator.onLine));
+
+        error.isTimeout = Boolean(isTimeout);
+        error.isNetworkError = Boolean(isNetwork);
+        error.retryAttempts = attempt;
+        error.friendlyMessage = this.formatErrorMessage(error);
+
+        // Notify global offline listeners if it's a network disconnect
+        if (isNetwork && typeof window !== "undefined") {
+          window.dispatchEvent(
+            new CustomEvent("api:offline", {
+              detail: { endpoint, error: error.message },
+            })
+          );
+        }
+
+        // Check if error is retryable and attempt retry
+        if (attempt < maxRetries && this.isRetryable(error, error.status)) {
+          attempt++;
+          const backoff = baseRetryDelay * Math.pow(2, attempt - 1) + Math.floor(Math.random() * 50);
+          console.warn(
+            `[API Resilience] Retrying ${endpoint} (attempt ${attempt}/${maxRetries}) in ${backoff}ms due to ${error.message}...`
+          );
+          if (typeof window !== "undefined") {
+            window.dispatchEvent(
+              new CustomEvent("api:retry", {
+                detail: {
+                  endpoint,
+                  attempt,
+                  maxRetries,
+                  delay: backoff,
+                  error: error.message,
+                },
+              })
+            );
+          }
+          await new Promise((resolve) => setTimeout(resolve, backoff));
+          continue; // Retry loop
+        }
+
+        // If error wasn't already caught by rejection interceptors
+        if (!error.status) {
+          console.error(`[API Network Error] Request failed on ${endpoint}:`, error.message);
+        }
         throw error;
       }
-
-      // Run through success interceptors
-      let finalData = data;
-      for (const { onFulfilled } of this.responseInterceptors) {
-        if (typeof onFulfilled === "function") {
-          finalData = await onFulfilled(finalData);
-        }
-      }
-
-      return finalData;
-    } catch (error) {
-      // If error wasn't already caught by rejection interceptors
-      if (!error.status) {
-        console.error(`[API Network Error] Request failed on ${endpoint}:`, error.message);
-      }
-      throw error;
     }
   }
 

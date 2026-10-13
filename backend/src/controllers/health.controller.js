@@ -66,7 +66,49 @@ const getSecurityHealth = (req, res, next) => {
   }
 };
 
+/**
+ * Resilience Health Controller
+ * Reports active resilience policies, retry parameters, and standardized error schemas.
+ */
+const getResilienceHealth = (req, res, next) => {
+  try {
+    const resilienceReport = {
+      service: "Mini E-Commerce Resilience & Error Handling",
+      status: "OPERATIONAL",
+      timestamp: new Date().toISOString(),
+      errorBoundary: {
+        enabled: true,
+        fallbackView: "Custom Turkish UI",
+        recoveryActions: ["retry", "reload", "home"],
+      },
+      clientRetryPolicy: {
+        defaultRetries: 2,
+        baseBackoffMs: 500,
+        backoffStrategy: "exponential_with_jitter",
+        retryableStatuses: [502, 503, 504],
+        clientErrorSafeguard: true,
+      },
+      networkMonitoring: {
+        offlineDetection: true,
+        autoReconnectionSync: true,
+      },
+      standardizedErrorFormat: {
+        fields: ["success", "message", "statusCode", "path", "timestamp"],
+      },
+    };
+
+    return successResponse(res, {
+      statusCode: 200,
+      message: "Resilience policies and error handling are active and operational",
+      data: resilienceReport,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getHealth,
   getSecurityHealth,
+  getResilienceHealth,
 };

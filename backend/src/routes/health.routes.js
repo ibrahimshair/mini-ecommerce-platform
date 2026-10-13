@@ -1,5 +1,9 @@
 const express = require("express");
-const { getHealth, getSecurityHealth } = require("../controllers/health.controller");
+const {
+  getHealth,
+  getSecurityHealth,
+  getResilienceHealth,
+} = require("../controllers/health.controller");
 
 const router = express.Router();
 
@@ -16,5 +20,12 @@ router.get("/", getHealth);
  * @access  Public
  */
 router.get("/security", getSecurityHealth);
+
+/**
+ * @route   GET /api/health/resilience
+ * @desc    Get system resilience, retry policies and error handling schema
+ * @access  Public
+ */
+router.get("/resilience", getResilienceHealth);
 
 module.exports = router;

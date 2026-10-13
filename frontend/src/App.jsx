@@ -16,20 +16,24 @@ import Footer from "./components/Footer";
 import AuthModal from "./components/AuthModal";
 import CartToast from "./components/CartToast";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ErrorBoundary from "./components/ErrorBoundary";
 import { useAuth } from "./context/AuthContext";
+import { useNetworkStatus } from "./hooks/useNetworkStatus";
 
 function App() {
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
   const { currentUser, logout, updateUser } = useAuth();
+  const { isOnline, wasOffline, dismissReconnected } = useNetworkStatus();
 
   // Authentication modal state
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState("register");
   const [sessionExpiredNotice, setSessionExpiredNotice] = useState(false);
   const [rateLimitNotice, setRateLimitNotice] = useState(null);
+  const [retryNotice, setRetryNotice] = useState(null);
 
-  // Listen for global session expiration and rate limit events
+  // Listen for global session expiration, rate limit, and API retry events
   useEffect(() => {
     const handleUnauthorized = (e) => {
       setSessionExpiredNotice(true);
@@ -41,11 +45,21 @@ function App() {
       setTimeout(() => setRateLimitNotice(null), 6000);
     };
 
+    const handleRetry = (e) => {
+      const detail = e.detail || {};
+      setRetryNotice(
+        `Ağ bağlantısı dalgalanması tespit edildi. İstek yeniden deneniyor (${detail.attempt}/${detail.maxRetries})...`
+      );
+      setTimeout(() => setRetryNotice(null), 4000);
+    };
+
     window.addEventListener("auth:unauthorized", handleUnauthorized);
     window.addEventListener("api:ratelimit", handleRateLimit);
+    window.addEventListener("api:retry", handleRetry);
     return () => {
       window.removeEventListener("auth:unauthorized", handleUnauthorized);
       window.removeEventListener("api:ratelimit", handleRateLimit);
+      window.removeEventListener("api:retry", handleRetry);
     };
   }, []);
 
@@ -79,6 +93,97 @@ function App() {
 
   return (
     <div className="app-container">
+      {/* Offline Network Warning Banner */}
+      {!isOnline && (
+        <div
+          className="network-offline-banner"
+          style={{
+            backgroundColor: "#7f1d1d",
+            color: "#fef2f2",
+            borderBottom: "1px solid #991b1b",
+            padding: "0.75rem 1rem",
+            textAlign: "center",
+            fontSize: "0.875rem",
+            fontWeight: 600,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "0.5rem",
+            position: "sticky",
+            top: 0,
+            zIndex: 1150,
+          }}
+          role="alert"
+        >
+          <span>📡 İnternet bağlantısı kesildi. Çevrimdışı moddasınız. Bağlantı kurulduğunda otomatik senkronize edilecektir.</span>
+        </div>
+      )}
+
+      {/* Network Reconnection Success Banner */}
+      {wasOffline && (
+        <div
+          className="network-reconnected-banner"
+          style={{
+            backgroundColor: "#065f46",
+            color: "#ecfdf5",
+            borderBottom: "1px solid #047857",
+            padding: "0.75rem 1rem",
+            textAlign: "center",
+            fontSize: "0.875rem",
+            fontWeight: 600,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "0.5rem",
+            position: "sticky",
+            top: 0,
+            zIndex: 1140,
+          }}
+          role="status"
+        >
+          <span>✅ İnternet bağlantısı yeniden sağlandı. Çevrimiçi durumdasınız.</span>
+          <button
+            type="button"
+            onClick={dismissReconnected}
+            style={{
+              background: "transparent",
+              border: "none",
+              color: "#ecfdf5",
+              cursor: "pointer",
+              fontWeight: "bold",
+              marginLeft: "1rem",
+            }}
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
+      {/* Network / API Transient Retry Notification Banner */}
+      {retryNotice && (
+        <div
+          className="network-retry-banner"
+          style={{
+            backgroundColor: "#eff6ff",
+            color: "#1e40af",
+            borderBottom: "1px solid #bfdbfe",
+            padding: "0.65rem 1rem",
+            textAlign: "center",
+            fontSize: "0.85rem",
+            fontWeight: 600,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "0.5rem",
+            position: "sticky",
+            top: 0,
+            zIndex: 1130,
+          }}
+        >
+          <span>🔄 {retryNotice}</span>
+        </div>
+      )}
+
       {sessionExpiredNotice && (
         <div
           style={{
@@ -158,73 +263,75 @@ function App() {
       />
 
       <main className="main-content">
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/products" element={<ProductsPage />} />
-          <Route path="/products/:id" element={<ProductDetailPage />} />
-          <Route
-            path="/login"
-            element={
-              <LoginPage
-                onAuthSuccess={(user) => {
-                  updateUser(user);
-                }}
-              />
-            }
-          />
-          <Route
-            path="/register"
-            element={
-              <RegisterPage
-                onAuthSuccess={(user) => {
-                  updateUser(user);
-                }}
-              />
-            }
-          />
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
-                <ProfilePage currentUser={currentUser} onLogout={logout} />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="/cart" element={<CartPage />} />
-          <Route
-            path="/checkout"
-            element={
-              <ProtectedRoute>
-                <CheckoutPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/orders"
-            element={
-              <ProtectedRoute>
-                <OrdersPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/orders/:id"
-            element={
-              <ProtectedRoute>
-                <OrdersPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute allowedRoles={["admin"]}>
-                <AdminPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
+        <ErrorBoundary>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/products" element={<ProductsPage />} />
+            <Route path="/products/:id" element={<ProductDetailPage />} />
+            <Route
+              path="/login"
+              element={
+                <LoginPage
+                  onAuthSuccess={(user) => {
+                    updateUser(user);
+                  }}
+                />
+              }
+            />
+            <Route
+              path="/register"
+              element={
+                <RegisterPage
+                  onAuthSuccess={(user) => {
+                    updateUser(user);
+                  }}
+                />
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <ProfilePage currentUser={currentUser} onLogout={logout} />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/cart" element={<CartPage />} />
+            <Route
+              path="/checkout"
+              element={
+                <ProtectedRoute>
+                  <CheckoutPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/orders"
+              element={
+                <ProtectedRoute>
+                  <OrdersPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/orders/:id"
+              element={
+                <ProtectedRoute>
+                  <OrdersPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <AdminPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </ErrorBoundary>
       </main>
 
       <Footer />
