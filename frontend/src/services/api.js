@@ -429,6 +429,14 @@ class ApiService {
     });
   }
 
+  patch(endpoint, body = {}, options = {}) {
+    return this.request(endpoint, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+      ...options,
+    });
+  }
+
   delete(endpoint, options = {}) {
     return this.request(endpoint, { method: "DELETE", ...options });
   }

@@ -125,19 +125,25 @@ function AdminPage() {
 
   // Order status update handler
   const handleUpdateOrderStatus = async (orderId, newStatus) => {
+    // Optimistically update orders list and open modal state immediately
+    setOrders((prev) =>
+      prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o))
+    );
+    if (selectedOrderDetail && selectedOrderDetail.id === orderId) {
+      setSelectedOrderDetail((prev) => ({ ...prev, status: newStatus }));
+    }
+
     try {
       const res = await api.updateAdminOrderStatus(orderId, newStatus);
       if (res?.success) {
         showNotification(
           `Sipariş (#${res?.data?.orderNumber || orderId}) durumu '${STATUS_LABELS[newStatus]?.label || newStatus}' olarak güncellendi.`
         );
-        // Refresh live orders and stats
+        // Refresh live orders and stats from backend
         loadDashboardData();
-        if (selectedOrderDetail && selectedOrderDetail.id === orderId) {
-          setSelectedOrderDetail((prev) => ({ ...prev, status: newStatus }));
-        }
       }
     } catch (err) {
+      loadDashboardData();
       showNotification(err.message || "Sipariş durumu güncellenemedi.", "error");
     }
   };
