@@ -1,0 +1,302 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Mini E-Commerce Platform REST API",
+    "description": "Comprehensive REST API specification for Mini E-Commerce Platform, providing full customer authentication, product catalog with advanced search & pagination, shopping cart, order lifecycle management, administrative back-office, and health monitoring.",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Mini E-Commerce API Team",
+      "url": "https://github.com/ibrahimshair/mini-ecommerce-platform"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5000/api",
+      "description": "Local Development Server"
+    },
+    {
+      "url": "https://api.mini-ecommerce.example.com/api",
+      "description": "Production Server"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "StandardResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": true },
+          "message": { "type": "string", "example": "Operation completed successfully" },
+          "data": { "type": "object" },
+          "meta": { "type": "object" }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": false },
+          "statusCode": { "type": "integer", "example": 400 },
+          "message": { "type": "string", "example": "Geçersiz istek parametreleri" },
+          "timestamp": { "type": "string", "format": "date-time" },
+          "path": { "type": "string", "example": "/api/products" },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field": { "type": "string" },
+                "message": { "type": "string" }
+              }
+            }
+          }
+        }
+      },
+      "Product": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "p1" },
+          "name": { "type": "string", "example": "Kablosuz ANC Kulak Üstü Kulaklık Pro" },
+          "slug": { "type": "string", "example": "kablosuz-anc-kulak-ustu-kulaklik-pro" },
+          "category": { "type": "string", "example": "Elektronik" },
+          "categorySlug": { "type": "string", "example": "elektronik" },
+          "price": { "type": "number", "example": 2499.0 },
+          "oldPrice": { "type": "number", "example": 3199.0 },
+          "discount": { "type": "number", "example": 22 },
+          "rating": { "type": "number", "example": 4.8 },
+          "reviewCount": { "type": "integer", "example": 142 },
+          "stock": { "type": "integer", "example": 24 },
+          "image": { "type": "string", "format": "uri" },
+          "isFeatured": { "type": "boolean", "example": true },
+          "description": { "type": "string" }
+        }
+      },
+      "PaginationMetadata": {
+        "type": "object",
+        "properties": {
+          "total": { "type": "integer", "example": 24 },
+          "page": { "type": "integer", "example": 1 },
+          "limit": { "type": "integer", "example": 12 },
+          "totalPages": { "type": "integer", "example": 2 },
+          "hasNextPage": { "type": "boolean", "example": true },
+          "hasPrevPage": { "type": "boolean", "example": false }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/auth/register": {
+      "post": {
+        "summary": "Register new user account",
+        "tags": ["Authentication"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "email", "password"],
+                "properties": {
+                  "name": { "type": "string", "example": "Ahmet Yılmaz" },
+                  "email": { "type": "string", "format": "email", "example": "ahmet@example.com" },
+                  "password": { "type": "string", "format": "password", "example": "Password123!" },
+                  "phone": { "type": "string", "example": "05551234567" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "User created successfully" },
+          "400": { "description": "Validation error" }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "summary": "Authenticate user and issue JWT token",
+        "tags": ["Authentication"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "password"],
+                "properties": {
+                  "email": { "type": "string", "format": "email", "example": "ahmet@example.com" },
+                  "password": { "type": "string", "format": "password", "example": "Password123!" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Login successful, returns JWT token" },
+          "401": { "description": "Invalid credentials" }
+        }
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "summary": "Get authenticated user profile",
+        "tags": ["Authentication"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "User profile data" },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/products": {
+      "get": {
+        "summary": "Retrieve products with search, multi-criteria filtering, and pagination",
+        "tags": ["Products"],
+        "parameters": [
+          { "name": "search", "in": "query", "schema": { "type": "string" }, "description": "Search term across name and description" },
+          { "name": "q", "in": "query", "schema": { "type": "string" }, "description": "Alias for search term" },
+          { "name": "category", "in": "query", "schema": { "type": "string" }, "description": "Category slug filter" },
+          { "name": "minPrice", "in": "query", "schema": { "type": "number" }, "description": "Minimum product price" },
+          { "name": "maxPrice", "in": "query", "schema": { "type": "number" }, "description": "Maximum product price" },
+          { "name": "minRating", "in": "query", "schema": { "type": "number" }, "description": "Minimum customer rating (e.g. 4.0)" },
+          { "name": "inStock", "in": "query", "schema": { "type": "boolean" }, "description": "Filter only in-stock items" },
+          { "name": "sortBy", "in": "query", "schema": { "type": "string", "enum": ["recommended", "price-asc", "price-desc", "rating-desc", "popular", "newest"] } },
+          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 1 }, "description": "Page number (1-indexed)" },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 12 }, "description": "Items per page (max 100)" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated product list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "data": { "type": "array", "items": { "$ref": "#/components/schemas/Product" } },
+                    "pagination": { "$ref": "#/components/schemas/PaginationMetadata" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/products/{id}": {
+      "get": {
+        "summary": "Get product details by ID or slug",
+        "tags": ["Products"],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Product details" },
+          "404": { "description": "Product not found" }
+        }
+      }
+    },
+    "/categories": {
+      "get": {
+        "summary": "Get all categories",
+        "tags": ["Categories"],
+        "responses": {
+          "200": { "description": "List of categories" }
+        }
+      }
+    },
+    "/cart": {
+      "get": {
+        "summary": "Get current shopping cart items and calculation summary",
+        "tags": ["Cart"],
+        "responses": {
+          "200": { "description": "Shopping cart data" }
+        }
+      }
+    },
+    "/orders": {
+      "get": {
+        "summary": "Get customer order history",
+        "tags": ["Orders"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Order history array" },
+          "401": { "description": "Unauthorized" }
+        }
+      },
+      "post": {
+        "summary": "Create new order from checkout",
+        "tags": ["Orders"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "201": { "description": "Order placed successfully" }
+        }
+      }
+    },
+    "/orders/{id}/cancel": {
+      "patch": {
+        "summary": "Cancel order and release reserved stock",
+        "tags": ["Orders"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Order canceled and stock restored" }
+        }
+      }
+    },
+    "/admin/stats": {
+      "get": {
+        "summary": "Get administrator KPI and store analytics",
+        "tags": ["Admin"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "KPI revenue, orders, and stock statistics" },
+          "403": { "description": "Admin access required" }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Check system uptime, memory, and database status",
+        "tags": ["System Health"],
+        "responses": {
+          "200": { "description": "Health status UP" }
+        }
+      }
+    },
+    "/health/security": {
+      "get": {
+        "summary": "Check OWASP security headers, sanitization, and rate limits",
+        "tags": ["System Health"],
+        "responses": {
+          "200": { "description": "Security audit status" }
+        }
+      }
+    },
+    "/health/resilience": {
+      "get": {
+        "summary": "Check error resilience, retry policies, and error contracts",
+        "tags": ["System Health"],
+        "responses": {
+          "200": { "description": "Resilience policy report" }
+        }
+      }
+    },
+    "/health/performance": {
+      "get": {
+        "summary": "Check HTTP ETag, compression, and memory metrics",
+        "tags": ["System Health"],
+        "responses": {
+          "200": { "description": "Performance optimization report" }
+        }
+      }
+    }
+  }
+}

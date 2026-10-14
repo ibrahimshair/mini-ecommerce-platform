@@ -824,8 +824,8 @@ Her önemli görev tamamlandıktan sonra commit oluşturulacak ve GitHub'a push 
 | ----- | -------- | ----- |
 | Faz 1 | G1–G7    | [x]   |
 | Faz 2 | G8–G14   | [x]   |
-| Faz 3 | G15–G24  | [ ]   |
-| Faz 4 | G25–G35  | [ ]   |
+| Faz 3 | G15–G24  | [x]   |
+| Faz 4 | G25–G35  | [x]   |
 
 ## Görev Durumları
 
@@ -846,24 +846,24 @@ Her önemli görev tamamlandıktan sonra commit oluşturulacak ve GitHub'a push 
 * [x] G15 — Categories
 * [x] G16 — Products
 * [x] G17 — Product detail
-* [ ] G18 — Search/filter
-* [ ] G19 — Admin products
-* [ ] G20 — Admin categories
+* [x] G18 — Search/filter
+* [x] G19 — Admin products
+* [x] G20 — Admin categories
 * [x] G21 — Cart backend
 * [x] G22 — Cart frontend
 * [x] G23 — Cart calculation
-* [ ] G24 — Integration
-* [ ] G25 — Order creation
-* [ ] G26 — Order history
-* [ ] G27 — Admin orders
-* [ ] G28 — Homepage/UI
-* [ ] G29 — Responsive design
-* [ ] G30 — Error handling
-* [ ] G31 — Security
-* [ ] G32 — Tests
-* [ ] G33 — Docker
-* [ ] G34 — Deployment
-* [ ] G35 — Final delivery
+* [x] G24 — Integration
+* [x] G25 — Order creation
+* [x] G26 — Order history
+* [x] G27 — Admin orders
+* [x] G28 — Homepage/UI
+* [x] G29 — Responsive design
+* [x] G30 — Error handling
+* [x] G31 — Security
+* [x] G32 — Tests
+* [x] G33 — Docker
+* [x] G34 — Deployment
+* [x] G35 — Final delivery
 
 ---
 

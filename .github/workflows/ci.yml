@@ -1,0 +1,147 @@
+name: Mini E-Commerce Continuous Integration & Delivery (CI/CD)
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - "feature/**"
+  pull_request:
+    branches:
+      - main
+      - develop
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Job 1: Backend Automated Integration & Health Tests
+  backend-test:
+    name: Backend Lint, Security & Test Suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: mini_ecommerce
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20.x Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install Backend Dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Execute Database Migrations
+        working-directory: ./backend
+        env:
+          PORT: 5000
+          NODE_ENV: test
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_NAME: mini_ecommerce
+          DB_USER: postgres
+          DB_PASSWORD: postgres
+          JWT_SECRET: ci_pipeline_test_jwt_secret_token
+        run: npm run migrate || true
+
+      - name: Run Backend Full Automated Test Suites
+        working-directory: ./backend
+        env:
+          PORT: 5000
+          NODE_ENV: test
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_NAME: mini_ecommerce
+          DB_USER: postgres
+          DB_PASSWORD: postgres
+          JWT_SECRET: ci_pipeline_test_jwt_secret_token
+        run: npm test
+
+  # Job 2: Frontend Build & Bundle Verification
+  frontend-build:
+    name: Frontend Build & Asset Verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20.x Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Frontend Dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Build Production Bundle (Vite)
+        working-directory: ./frontend
+        run: npm run build
+
+      - name: Archive Production Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist
+          retention-days: 7
+
+  # Job 3: Security & Vulnerability Audit
+  security-audit:
+    name: Dependency Security & Vulnerability Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20.x Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Audit Backend Dependencies
+        working-directory: ./backend
+        run: npm audit --audit-level=critical || true
+
+      - name: Audit Frontend Dependencies
+        working-directory: ./frontend
+        run: npm audit --audit-level=critical || true
+
+  # Job 4: Docker & Compose Syntax Validation
+  docker-validation:
+    name: Docker & Docker Compose Specification Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Validate Docker Compose Configuration
+        run: docker compose config -q
