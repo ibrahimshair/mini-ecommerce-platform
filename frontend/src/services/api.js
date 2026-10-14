@@ -729,15 +729,32 @@ class ApiService {
     try {
       const key = `ministore_addresses_${userId}`;
       const saved = localStorage.getItem(key);
+      const currentUser = this.getCurrentUser();
+      const currentUserName = currentUser?.name || "İbrahim Şaar";
+      const currentUserPhone = currentUser?.phone || "0555 123 45 67";
+
       if (saved) {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        // Automatically migrate any legacy mock "Ahmet Yılmaz" address to the active user's actual name
+        let hasChanges = false;
+        parsed.forEach((addr) => {
+          if (addr.fullName === "Ahmet Yılmaz") {
+            addr.fullName = currentUserName;
+            hasChanges = true;
+          }
+        });
+        if (hasChanges) {
+          localStorage.setItem(key, JSON.stringify(parsed));
+        }
+        return parsed;
       }
+
       const initial = [
         {
           id: "addr-1",
           title: "Ev",
-          fullName: "Ahmet Yılmaz",
-          phone: "0555 123 45 67",
+          fullName: currentUserName,
+          phone: currentUserPhone,
           city: "İstanbul",
           district: "Kadıköy",
           detailedAddress: "Moda Cad. No: 14 Daire: 5",

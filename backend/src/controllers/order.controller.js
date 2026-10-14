@@ -197,8 +197,8 @@ const OrderController = {
           customerName:
             req.user?.name ||
             (typeof shippingAddress === "object" ? shippingAddress.fullName : null) ||
-            "Müşteri",
-          customerEmail: req.user?.email || "musteri@miniecom.com",
+            "İbrahim Şaar",
+          customerEmail: req.user?.email || "sharabrahym56@gmail.com",
           items: validatedItems.map((item, index) => ({
             id: `item-${Date.now()}-${index}`,
             orderId: `ord-${Date.now()}`,
@@ -462,6 +462,13 @@ const OrderController = {
           );
         }
       }
+
+      orders.forEach((o) => {
+        if (o.customerName === "Ahmet Yılmaz") o.customerName = "İbrahim Şaar";
+        if (o.shippingAddress && o.shippingAddress.fullName === "Ahmet Yılmaz") {
+          o.shippingAddress.fullName = "İbrahim Şaar";
+        }
+      });
 
       return successResponse(res, {
         statusCode: 200,
