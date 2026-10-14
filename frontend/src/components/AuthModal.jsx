@@ -97,12 +97,25 @@ function AuthModal({ isOpen, initialMode = "register", onClose, onAuthSuccess })
         const res = await register(payload);
 
         setSuccessMessage(`Tebrikler ${res?.data?.name || "Kullanıcı"}! Hesabınız başarıyla oluşturuldu.`);
-        if (onAuthSuccess && res?.data) {
-          onAuthSuccess(res.data);
+
+        // Attempt automatic login to set active session
+        try {
+          const loginRes = await login({
+            email: formData.email.trim(),
+            password: formData.password,
+          });
+          if (onAuthSuccess && loginRes?.data?.user) {
+            onAuthSuccess(loginRes.data.user);
+          }
+        } catch {
+          if (onAuthSuccess && res?.data) {
+            onAuthSuccess(res.data);
+          }
         }
+
         setTimeout(() => {
           onClose();
-        }, 1500);
+        }, 1200);
       } else {
         // Login mode
         const res = await login({
@@ -120,6 +133,13 @@ function AuthModal({ isOpen, initialMode = "register", onClose, onAuthSuccess })
         }, 1200);
       }
     } catch (err) {
+      if (err.data?.errors && Array.isArray(err.data.errors)) {
+        const fieldErrors = {};
+        err.data.errors.forEach((item) => {
+          if (item.field) fieldErrors[item.field] = item.message;
+        });
+        setErrors((prev) => ({ ...prev, ...fieldErrors }));
+      }
       setGeneralError(err.message || "Bir hata oluştu. Lütfen tekrar deneyiniz.");
     } finally {
       setIsLoading(false);
