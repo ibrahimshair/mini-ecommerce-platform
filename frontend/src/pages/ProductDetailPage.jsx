@@ -133,6 +133,9 @@ function ProductDetailPage() {
 
   const isOutOfStock = product.stock <= 0;
   const isCriticalStock = product.stock > 0 && product.stock <= 5;
+  const inCartQty = getItemQuantityInCart ? getItemQuantityInCart(product.id || id) : 0;
+  const remainingStock = getRemainingStock ? getRemainingStock(product.id || id, product.stock ?? 15) : (product.stock ?? 15);
+  const isMaxInCart = inCartQty >= (product.stock ?? 15) && (product.stock ?? 15) > 0;
 
   // Generate thumbnail list (main image + mock angle perspectives)
   const thumbnails = [
