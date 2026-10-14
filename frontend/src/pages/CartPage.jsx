@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { formatCurrency } from "../utils/formatters";
+import useScrollLock from "../hooks/useScrollLock";
 import "./CartPage.css";
 
 // Sample recommended items for empty or active cart upsell
@@ -73,6 +74,9 @@ function CartPage() {
   const [couponError, setCouponError] = useState("");
   const [isClearModalOpen, setIsClearModalOpen] = useState(false);
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
+
+  // Lock background scroll when confirmation modal is open
+  useScrollLock(isClearModalOpen);
 
   // Validate live stock on page mount
   useEffect(() => {

@@ -2,28 +2,15 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { formatCurrency } from "../utils/formatters";
 import { useCart } from "../context/CartContext";
+import useScrollLock from "../hooks/useScrollLock";
 import "./ProductDetailModal.css";
 
 function ProductDetailModal({ product, onClose, onAddToCart }) {
   const { addToCart, getItemQuantityInCart, getRemainingStock } = useCart();
   const [quantity, setQuantity] = useState(1);
 
-  // Lock background body scroll while modal is open to prevent screen shifting
-  useEffect(() => {
-    const originalOverflow = document.body.style.overflow;
-    const originalPaddingRight = document.body.style.paddingRight;
-    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-
-    document.body.style.overflow = "hidden";
-    if (scrollbarWidth > 0) {
-      document.body.style.paddingRight = `${scrollbarWidth}px`;
-    }
-
-    return () => {
-      document.body.style.overflow = originalOverflow;
-      document.body.style.paddingRight = originalPaddingRight;
-    };
-  }, []);
+  // Lock background scroll completely when modal is open
+  useScrollLock(Boolean(product));
 
   // Close modal on Escape key press
   useEffect(() => {
