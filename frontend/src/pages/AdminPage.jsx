@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import api from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import useDebounce from "../hooks/useDebounce";
+import useScrollLock from "../hooks/useScrollLock";
 import "./AdminPage.css";
 
 const STATUS_LABELS = {
@@ -80,6 +81,9 @@ function AdminPage() {
     isOpen: false,
     product: null,
   });
+
+  // Lock background scroll when any admin modal is open
+  useScrollLock(Boolean(selectedOrderDetail) || productModal.isOpen || deleteConfirmModal.isOpen);
 
   const showNotification = (message, type = "success") => {
     setNotification({ message, type });

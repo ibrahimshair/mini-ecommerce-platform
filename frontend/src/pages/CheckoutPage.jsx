@@ -78,12 +78,116 @@ function CheckoutPage() {
   };
 
   const handleExpiryChange = (e) => {
-    let raw = e.target.value.replace(/\D/g, "").slice(0, 4);
-    if (raw.length >= 3) {
-      raw = `${raw.slice(0, 2)}/${raw.slice(2)}`;
+    let digits = e.target.value.replace(/\D/g, "").slice(0, 4);
+
+    // If first digit is > 1 (e.g. 2, 3.. 9), auto prefix with 0
+    if (digits.length === 1 && parseInt(digits, 10) > 1) {
+      digits = `0${digits}`;
     }
-    setCardData((prev) => ({ ...prev, expiry: raw }));
-    if (cardErrors.expiry) setCardErrors((prev) => ({ ...prev, expiry: "" }));
+
+    let formatted = digits;
+    if (digits.length >= 3) {
+      formatted = `${digits.slice(0, 2)}/${digits.slice(2)}`;
+    }
+
+    setCardData((prev) => ({ ...prev, expiry: formatted }));
+
+    // Instant validation feedback for month and 00/00
+    if (digits.length >= 2) {
+      const month = parseInt(digits.slice(0, 2), 10);
+      if (month === 0) {
+        setCardErrors((prev) => ({
+          ...prev,
+          expiry: "Geçersiz ay! Son kullanma ayı '00' olamaz (01-12).",
+        }));
+        return;
+      }
+      if (month > 12) {
+        setCardErrors((prev) => ({
+          ...prev,
+          expiry: "Geçersiz ay! Bir yılda en fazla 12 ay vardır (01-12).",
+        }));
+        return;
+      }
+    }
+
+    if (digits.length === 4) {
+      const month = parseInt(digits.slice(0, 2), 10);
+      const year = parseInt(digits.slice(2, 4), 10);
+
+      if (digits === "0000" || (month === 0 && year === 0)) {
+        setCardErrors((prev) => ({
+          ...prev,
+          expiry: "Son kullanma tarihi 00/00 olamaz. Geçerli bir tarih giriniz.",
+        }));
+        return;
+      }
+      if (year === 0) {
+        setCardErrors((prev) => ({
+          ...prev,
+          expiry: "Son kullanma yılı 00 olamaz.",
+        }));
+        return;
+      }
+    }
+
+    if (cardErrors.expiry) {
+      setCardErrors((prev) => ({ ...prev, expiry: "" }));
+    }
+  };
+
+  const handleExpiryBlur = () => {
+    if (!cardData.expiry) return;
+
+    if (cardData.expiry.length < 5) {
+      setCardErrors((prev) => ({
+        ...prev,
+        expiry: "Son kullanma tarihi geçersiz (AA/YY formatında 5 karakter olmalıdır).",
+      }));
+      return;
+    }
+
+    const [monthStr, yearStr] = cardData.expiry.split("/");
+    const month = parseInt(monthStr, 10);
+    const year = parseInt(yearStr, 10);
+
+    if (cardData.expiry === "00/00" || (month === 0 && year === 0)) {
+      setCardErrors((prev) => ({
+        ...prev,
+        expiry: "Son kullanma tarihi 00/00 olamaz. Lütfen geçerli bir tarih giriniz.",
+      }));
+      return;
+    }
+
+    if (isNaN(month) || month < 1 || month > 12) {
+      setCardErrors((prev) => ({
+        ...prev,
+        expiry: "Geçersiz ay! Son kullanma ayı 01 ile 12 arasında olmalıdır (En fazla 12).",
+      }));
+      return;
+    }
+
+    if (isNaN(year) || year === 0) {
+      setCardErrors((prev) => ({
+        ...prev,
+        expiry: "Geçersiz yıl! Son kullanma yılı 00 olamaz.",
+      }));
+      return;
+    }
+
+    // Expiration check
+    const now = new Date();
+    const currentYear = now.getFullYear() % 100;
+    const currentMonth = now.getMonth() + 1;
+    if (year < currentYear || (year === currentYear && month < currentMonth)) {
+      setCardErrors((prev) => ({
+        ...prev,
+        expiry: "Kartınızın son kullanma tarihi geçmiş.",
+      }));
+      return;
+    }
+
+    setCardErrors((prev) => ({ ...prev, expiry: "" }));
   };
 
   const handleCvvChange = (e) => {
@@ -159,7 +263,26 @@ function CheckoutPage() {
         errors.holder = "Kart üzerindeki isim zorunludur.";
       }
       if (!cardData.expiry || cardData.expiry.length < 5) {
-        errors.expiry = "Son kullanma tarihi geçersiz (AA/YY).";
+        errors.expiry = "Son kullanma tarihi geçersiz (AA/YY formatında giriniz).";
+      } else {
+        const [monthStr, yearStr] = cardData.expiry.split("/");
+        const month = parseInt(monthStr, 10);
+        const year = parseInt(yearStr, 10);
+
+        if (cardData.expiry === "00/00" || (month === 0 && year === 0)) {
+          errors.expiry = "Son kullanma tarihi 00/00 olamaz. Lütfen geçerli bir tarih giriniz.";
+        } else if (isNaN(month) || month < 1 || month > 12) {
+          errors.expiry = "Geçersiz ay! Son kullanma ayı 01 ile 12 arasında olmalıdır (En fazla 12).";
+        } else if (isNaN(year) || year === 0) {
+          errors.expiry = "Geçersiz yıl! Son kullanma yılı 00 olamaz.";
+        } else {
+          const now = new Date();
+          const currentYear = now.getFullYear() % 100;
+          const currentMonth = now.getMonth() + 1;
+          if (year < currentYear || (year === currentYear && month < currentMonth)) {
+            errors.expiry = "Kartınızın son kullanma tarihi geçmiş.";
+          }
+        }
       }
       if (!cardData.cvv || cardData.cvv.length < 3) {
         errors.cvv = "CVV en az 3 haneli olmalıdır.";
@@ -610,6 +733,7 @@ function CheckoutPage() {
                       <input
                         type="text"
                         placeholder="Örn: AHMET YILMAZ"
+                        className={cardErrors.holder ? "has-error" : ""}
                         value={cardData.holder}
                         onChange={(e) => {
                           setCardData({ ...cardData, holder: e.target.value });
@@ -627,6 +751,8 @@ function CheckoutPage() {
                       <input
                         type="text"
                         placeholder="0000 0000 0000 0000"
+                        maxLength="19"
+                        className={cardErrors.number ? "has-error" : ""}
                         value={cardData.number}
                         onChange={handleCardNumberChange}
                       />
@@ -641,8 +767,11 @@ function CheckoutPage() {
                         <input
                           type="text"
                           placeholder="AA/YY"
+                          maxLength="5"
+                          className={cardErrors.expiry ? "has-error" : ""}
                           value={cardData.expiry}
                           onChange={handleExpiryChange}
+                          onBlur={handleExpiryBlur}
                         />
                         {cardErrors.expiry && (
                           <span className="field-error-text">{cardErrors.expiry}</span>
@@ -655,6 +784,7 @@ function CheckoutPage() {
                           type="password"
                           placeholder="•••"
                           maxLength="4"
+                          className={cardErrors.cvv ? "has-error" : ""}
                           value={cardData.cvv}
                           onChange={handleCvvChange}
                         />

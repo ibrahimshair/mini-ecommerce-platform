@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
+import useScrollLock from "../hooks/useScrollLock";
 import "./AuthModal.css";
 
 function AuthModal({ isOpen, initialMode = "register", onClose, onAuthSuccess }) {
@@ -17,30 +18,15 @@ function AuthModal({ isOpen, initialMode = "register", onClose, onAuthSuccess })
   const [successMessage, setSuccessMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  // Lock background scroll when modal is open
+  useScrollLock(isOpen);
+
   useEffect(() => {
     setMode(initialMode);
     setErrors({});
     setGeneralError("");
     setSuccessMessage("");
   }, [initialMode, isOpen]);
-
-  // Lock background body scroll while auth modal is active
-  useEffect(() => {
-    if (!isOpen) return;
-    const originalOverflow = document.body.style.overflow;
-    const originalPaddingRight = document.body.style.paddingRight;
-    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-
-    document.body.style.overflow = "hidden";
-    if (scrollbarWidth > 0) {
-      document.body.style.paddingRight = `${scrollbarWidth}px`;
-    }
-
-    return () => {
-      document.body.style.overflow = originalOverflow;
-      document.body.style.paddingRight = originalPaddingRight;
-    };
-  }, [isOpen]);
 
   // Handle ESC key
   useEffect(() => {
@@ -111,12 +97,25 @@ function AuthModal({ isOpen, initialMode = "register", onClose, onAuthSuccess })
         const res = await register(payload);
 
         setSuccessMessage(`Tebrikler ${res?.data?.name || "Kullanıcı"}! Hesabınız başarıyla oluşturuldu.`);
-        if (onAuthSuccess && res?.data) {
-          onAuthSuccess(res.data);
+
+        // Attempt automatic login to set active session
+        try {
+          const loginRes = await login({
+            email: formData.email.trim(),
+            password: formData.password,
+          });
+          if (onAuthSuccess && loginRes?.data?.user) {
+            onAuthSuccess(loginRes.data.user);
+          }
+        } catch {
+          if (onAuthSuccess && res?.data) {
+            onAuthSuccess(res.data);
+          }
         }
+
         setTimeout(() => {
           onClose();
-        }, 1500);
+        }, 1200);
       } else {
         // Login mode
         const res = await login({
@@ -134,6 +133,13 @@ function AuthModal({ isOpen, initialMode = "register", onClose, onAuthSuccess })
         }, 1200);
       }
     } catch (err) {
+      if (err.data?.errors && Array.isArray(err.data.errors)) {
+        const fieldErrors = {};
+        err.data.errors.forEach((item) => {
+          if (item.field) fieldErrors[item.field] = item.message;
+        });
+        setErrors((prev) => ({ ...prev, ...fieldErrors }));
+      }
       setGeneralError(err.message || "Bir hata oluştu. Lütfen tekrar deneyiniz.");
     } finally {
       setIsLoading(false);

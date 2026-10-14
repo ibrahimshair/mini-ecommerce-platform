@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
+import useScrollLock from "../hooks/useScrollLock";
 import "./ProfilePage.css";
 
 function ProfilePage({ currentUser: propUser, onLogout: propLogout }) {
@@ -35,6 +36,7 @@ function ProfilePage({ currentUser: propUser, onLogout: propLogout }) {
   // Address Management State
   const [addresses, setAddresses] = useState([]);
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
+  useScrollLock(isAddressModalOpen);
   const [editingAddressId, setEditingAddressId] = useState(null);
   const [addressFormData, setAddressFormData] = useState({
     title: "",

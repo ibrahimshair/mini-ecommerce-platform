@@ -1,7 +1,9 @@
+import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import "./ProductCard.css";
 
 function ProductCard({ product, onViewDetail, onAddToCart }) {
+  const navigate = useNavigate();
   const { addToCart, getItemQuantityInCart, getRemainingStock } = useCart();
   const {
     id,
@@ -21,9 +23,7 @@ function ProductCard({ product, onViewDetail, onAddToCart }) {
   const isMaxInCart = inCartQty >= stock && stock > 0;
 
   const handleCardClick = () => {
-    if (onViewDetail) {
-      onViewDetail(product);
-    }
+    navigate(`/products/${id}`);
   };
 
   const handleAddToCartClick = (e) => {

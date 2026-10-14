@@ -5,7 +5,7 @@ import "./RegisterPage.css";
 
 function RegisterPage({ onAuthSuccess }) {
   const navigate = useNavigate();
-  const { register, login, isAuthenticated } = useAuth();
+  const { register, login, logout, isAuthenticated, currentUser } = useAuth();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -22,13 +22,6 @@ function RegisterPage({ onAuthSuccess }) {
   const [generalError, setGeneralError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-
-  // If already authenticated, redirect to profile
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate("/profile", { replace: true });
-    }
-  }, [isAuthenticated, navigate]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -134,14 +127,22 @@ function RegisterPage({ onAuthSuccess }) {
         }
         setTimeout(() => {
           navigate("/profile", { replace: true });
-        }, 1000);
+        }, 1200);
       } catch {
         // Fallback to manual login
         setTimeout(() => {
           navigate("/login", { replace: true });
-        }, 1200);
+        }, 1500);
       }
     } catch (err) {
+      // Map API validation or conflict field errors if provided
+      if (err.data?.errors && Array.isArray(err.data.errors)) {
+        const fieldErrors = {};
+        err.data.errors.forEach((item) => {
+          if (item.field) fieldErrors[item.field] = item.message;
+        });
+        setErrors((prev) => ({ ...prev, ...fieldErrors }));
+      }
       setGeneralError(err.message || "Kayıt işlemi başarısız. Lütfen bilgilerinizi kontrol ediniz.");
     } finally {
       setIsLoading(false);
@@ -226,7 +227,62 @@ function RegisterPage({ onAuthSuccess }) {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="auth-form-body" noValidate>
+            {isAuthenticated ? (
+              <div style={{ padding: "1.5rem 0", textAlign: "center" }}>
+                <div
+                  style={{
+                    padding: "1.25rem",
+                    background: "rgba(99, 102, 241, 0.08)",
+                    borderRadius: "12px",
+                    border: "1px solid rgba(99, 102, 241, 0.2)",
+                    marginBottom: "1.5rem",
+                  }}
+                >
+                  <p
+                    style={{
+                      margin: "0 0 0.5rem 0",
+                      fontSize: "1.1rem",
+                      fontWeight: "700",
+                      color: "var(--text-primary)",
+                    }}
+                  >
+                    👋 Merhaba, {currentUser?.name || "Kullanıcı"}!
+                  </p>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: "0.875rem",
+                      color: "var(--text-secondary)",
+                      lineHeight: "1.5",
+                    }}
+                  >
+                    Şu anda <strong>{currentUser?.email}</strong> hesabıyla giriş yapmış durumdasınız.
+                    Yeni bir hesap oluşturmak için lütfen önce mevcut oturumunuzu sonlandırın.
+                  </p>
+                </div>
+
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "0.75rem",
+                    justifyContent: "center",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={() => logout()}
+                  >
+                    Oturumu Kapat ve Yeni Hesap Aç
+                  </button>
+                  <Link to="/profile" className="btn btn-outline" style={{ textDecoration: "none" }}>
+                    Profilime Git
+                  </Link>
+                </div>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="auth-form-body" noValidate>
               {/* Name Input */}
               <div className="form-group">
                 <label htmlFor="reg-name">Ad ve Soyad</label>
@@ -441,15 +497,18 @@ function RegisterPage({ onAuthSuccess }) {
                 )}
               </button>
             </form>
+            )}
 
-            <div className="auth-card-footer">
-              <p>
-                Zaten bir hesabınız var mı?{" "}
-                <Link to="/login" className="auth-link">
-                  Giriş Yap &rarr;
-                </Link>
-              </p>
-            </div>
+            {!isAuthenticated && (
+              <div className="auth-card-footer">
+                <p>
+                  Zaten bir hesabınız var mı?{" "}
+                  <Link to="/login" className="auth-link">
+                    Giriş Yap &rarr;
+                  </Link>
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>

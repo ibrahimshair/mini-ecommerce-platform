@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
+import useScrollLock from "../hooks/useScrollLock";
 import "./OrdersPage.css";
 
 function formatCurrency(val) {
@@ -85,6 +86,9 @@ function OrdersPage() {
   const [isCancelling, setIsCancelling] = useState(false);
   const [cancelFeedback, setCancelFeedback] = useState("");
   const [copiedCode, setCopiedCode] = useState(false);
+
+  // Lock background scroll when order modal is open
+  useScrollLock(isDetailModalOpen || Boolean(cancelTargetOrder));
 
   // Fetch orders
   const fetchOrders = async () => {

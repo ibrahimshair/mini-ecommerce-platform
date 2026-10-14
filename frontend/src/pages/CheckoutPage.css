@@ -356,6 +356,18 @@
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
 }
 
+.input-group input.has-error,
+.input-group textarea.has-error {
+  border-color: #ef4444 !important;
+  background-color: #fef2f2;
+}
+
+.input-group input.has-error:focus,
+.input-group textarea.has-error:focus {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.18) !important;
+}
+
 .form-error-inline {
   color: #dc2626;
   font-size: 0.85rem;

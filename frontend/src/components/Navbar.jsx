@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, NavLink, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
+import useScrollLock from "../hooks/useScrollLock";
 import "./Navbar.css";
 
 function Navbar({ currentUser: propUser, onOpenAuth, onLogout: propLogout }) {
@@ -10,6 +11,9 @@ function Navbar({ currentUser: propUser, onOpenAuth, onLogout: propLogout }) {
   const currentUser = propUser !== undefined ? propUser : authUser;
   const onLogout = propLogout || authLogout;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Lock background scroll when mobile menu is open
+  useScrollLock(isMobileMenuOpen);
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const [searchValue, setSearchValue] = useState(searchParams.get("search") || "");

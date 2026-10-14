@@ -1,29 +1,17 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { formatCurrency } from "../utils/formatters";
 import { useCart } from "../context/CartContext";
+import useScrollLock from "../hooks/useScrollLock";
 import "./ProductDetailModal.css";
 
 function ProductDetailModal({ product, onClose, onAddToCart }) {
+  const navigate = useNavigate();
   const { addToCart, getItemQuantityInCart, getRemainingStock } = useCart();
   const [quantity, setQuantity] = useState(1);
 
-  // Lock background body scroll while modal is open to prevent screen shifting
-  useEffect(() => {
-    const originalOverflow = document.body.style.overflow;
-    const originalPaddingRight = document.body.style.paddingRight;
-    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-
-    document.body.style.overflow = "hidden";
-    if (scrollbarWidth > 0) {
-      document.body.style.paddingRight = `${scrollbarWidth}px`;
-    }
-
-    return () => {
-      document.body.style.overflow = originalOverflow;
-      document.body.style.paddingRight = originalPaddingRight;
-    };
-  }, []);
+  // Lock background scroll completely when modal is open
+  useScrollLock(Boolean(product));
 
   // Close modal on Escape key press
   useEffect(() => {
@@ -218,28 +206,44 @@ function ProductDetailModal({ product, onClose, onAddToCart }) {
                   : `Sepete Ekle (${formatCurrency(price * quantity)})`}
               </button>
 
-              <Link
-                to={`/products/${id}`}
-                onClick={onClose}
+              <button
+                type="button"
+                className="btn-go-to-detail"
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (onClose) onClose();
+                  navigate(`/products/${id}`);
+                }}
                 style={{
-                  display: "inline-block",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "0.5rem",
                   width: "100%",
                   textAlign: "center",
-                  marginTop: "0.65rem",
-                  fontSize: "0.875rem",
+                  marginTop: "0.75rem",
+                  fontSize: "0.9rem",
                   fontWeight: 600,
                   color: "var(--primary)",
-                  textDecoration: "none",
-                  padding: "0.5rem",
+                  backgroundColor: "var(--primary-light)",
+                  border: "1px solid var(--border-color)",
+                  padding: "0.65rem 1rem",
                   borderRadius: "var(--radius-md)",
-                  border: "1px dashed var(--border-color)",
+                  cursor: "pointer",
                   transition: "var(--transition)",
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--primary-light)")}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "var(--primary)";
+                  e.currentTarget.style.color = "#ffffff";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "var(--primary-light)";
+                  e.currentTarget.style.color = "var(--primary)";
+                }}
               >
-                🔍 Ayrıntılı Ürün Sayfasına Git &rarr;
-              </Link>
+                <span>🔍 Ayrıntılı Ürün Sayfasına Git</span>
+                <span>&rarr;</span>
+              </button>
             </div>
 
             <div className="modal-features-list">
