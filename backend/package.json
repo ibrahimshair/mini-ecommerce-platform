@@ -31,7 +31,7 @@
     "test": "npm run test:auth && npm run test:products && npm run test:cart && npm run test:cart:ui && npm run test:sprint4 && npm run test:orders && npm run test:checkout && npm run test:tracking && npm run test:admin && npm run test:sprint5 && npm run test:security && npm run test:resilience && npm run test:performance && npm run test:search-pagination && npm run test:sprint6 && npm run test:m7-unit && npm run test:docker && npm run test:cicd && npm run test:docs && npm run test:final"
   },
   "keywords": [],
-  "author": "",
+  "author": "İbrahim Şaar <sharabrahym56@gmail.com>",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {

@@ -383,3 +383,11 @@ Frontend uygulaması varsayılan olarak `http://localhost:5173` adresinde çalı
 ## Hedef
 
 Projenin sonunda temel e-ticaret işlemlerini gerçekleştirebilen, frontend, backend ve veritabanı katmanları birbirine bağlı çalışan modern bir web uygulaması ortaya çıkarılması hedeflenmektedir.
+
+---
+
+## 👨‍💻 Geliştirici
+
+* **Ad Soyad:** İbrahim Şaar
+* **E-Posta:** sharabrahym56@gmail.com
+* **GitHub:** [@ibrahimshair](https://github.com/ibrahimshair)
