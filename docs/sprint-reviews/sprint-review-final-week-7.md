@@ -1,6 +1,7 @@
 # 🎓 Hafta 7 Sprint Review & 35 Günlük Proje Final Teslim Raporu
 
 **Proje:** Mini E-Commerce Platform  
+**Geliştirici:** İbrahim Şaar (sharabrahym56@gmail.com)  
 **Sprint:** 7. Hafta (Gün 31–35)  
 **Milestone:** Milestone 7: Test Süreçleri, Docker Containerization, CI/CD & Final Teslimat  
 **Tarih:** 06 Kasım 2026  
